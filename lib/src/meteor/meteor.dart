@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:ddp/ddp.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../listeners/listeners.dart';
+import 'subscribed_collection.dart';
 
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
@@ -147,6 +148,34 @@ class Meteor {
     Db db = await getMeteorDatabase();
     var user = await db.collection("users").findOne({"_id": _currentUserId});
     completer.complete(user);
+    return completer.future;
+  }
+
+/**
+ * Methods associated with subscriptions
+ */
+
+  static Future<String> subscribe(String subscriptionName) async{
+    Completer<String> completer = Completer<String>();
+    Call result = await _client.sub(subscriptionName, []);
+    completer.complete(result.id);
+    return completer.future;
+  }
+
+  static Future<String> unsubscribe(String subscriptionId) async{
+    Completer<String> completer = Completer<String>();
+    Call result = await _client.unSub(subscriptionId);
+    completer.complete(result.id);
+    return completer.future;
+  }
+
+/**
+ * Methods related to collections
+ */
+  static Future<SubscribedCollection> collection(String collectionName){
+    Completer<SubscribedCollection> completer = Completer<SubscribedCollection>();
+    Collection collection = _client.collectionByName(collectionName);
+    completer.complete(SubscribedCollection(collection));
     return completer.future;
   }
 }

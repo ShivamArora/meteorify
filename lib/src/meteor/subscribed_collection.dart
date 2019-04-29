@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:ddp/ddp.dart';
+import 'package:meteorify/meteorify.dart';
+import 'package:meteorify/src/listeners/listeners.dart';
 
 class SubscribedCollection{
   Collection _collection;
-  SubscribedCollection(this._collection);
+  String name;
+  SubscribedCollection(this._collection,this.name);
 
   Map<String, dynamic> findOne(String id) {
     return _collection.findOne(id);
@@ -16,6 +21,7 @@ class SubscribedCollection{
     _collection.addUpdateListener(listener);
   }
 
+  //TODO: Check/reduce the complexity of this method
   Map<String, Map<String, dynamic>> find(Map<String,dynamic> selectors){
     Map<String,Map<String,dynamic>> filteredCollection = Map<String,Map<String,dynamic>>();
     print("Finding docs");

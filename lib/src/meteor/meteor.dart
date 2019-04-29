@@ -175,7 +175,7 @@ class Meteor {
   static Future<SubscribedCollection> collection(String collectionName){
     Completer<SubscribedCollection> completer = Completer<SubscribedCollection>();
     Collection collection = _client.collectionByName(collectionName);
-    completer.complete(SubscribedCollection(collection));
+    completer.complete(SubscribedCollection(collection,collectionName));
     return completer.future;
   }
 }

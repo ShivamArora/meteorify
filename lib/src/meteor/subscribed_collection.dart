@@ -21,7 +21,6 @@ class SubscribedCollection{
     _collection.addUpdateListener(listener);
   }
 
-  //TODO: Check/reduce the complexity of this method
   Map<String, Map<String, dynamic>> find(Map<String,dynamic> selectors){
     Map<String,Map<String,dynamic>> filteredCollection = Map<String,Map<String,dynamic>>();
     print("Finding docs");

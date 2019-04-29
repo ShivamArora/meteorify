@@ -32,7 +32,7 @@ class Meteor {
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
         _notifyDisconnected();
-        completer.complete(ConnectionStatus.DISCONNECTED);
+        completer.completeError(ConnectionStatus.DISCONNECTED);
       }
     });
     return completer.future;
@@ -47,14 +47,17 @@ class Meteor {
     _client.reconnect();
   }
 
-  static addConnectionListener(
+  /**
+   * TODO: Provide listeners for connection
+   *
+   static _addConnectionListener(
       MeteorConnectionListener _meteorConnectionListener) {
     _connectionListener = _meteorConnectionListener;
   }
 
-  static removeConnectionListener() {
+  static _removeConnectionListener() {
     _connectionListener = null;
-  }
+  }*/
 
   static void _notifyConnected() {
     if (_connectionListener != null) _connectionListener.onConnected();
@@ -71,8 +74,9 @@ class Meteor {
     return _currentUserId != null;
   }
 
-  static void loginWithPassword(
-      String email, String password, ResultListener resultListener) async {
+  static Future<String> loginWithPassword(
+      String email, String password) async {
+    Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call("login", [
         {
@@ -81,31 +85,36 @@ class Meteor {
         }
       ]);
       print(result.reply);
-      notifyLoginResult(result, resultListener);
+      notifyLoginResult(result, completer);
+      return completer.future;
     }
   }
 
-  static void loginWithToken(
-      String token, ResultListener resultListener) async {
+  static Future<String> loginWithToken(
+      String token) async {
+    Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call("login", [
         {"resume": token}
       ]);
       print(result.reply);
-      notifyLoginResult(result, resultListener);
+      notifyLoginResult(result, completer);
+      return completer.future;
     }
   }
 
-  static void notifyLoginResult(Call result, ResultListener resultListener) {
+
+  static void notifyLoginResult(Call result, Completer completer) {
     String userId = result.reply["id"];
     String token = result.reply["token"];
     if (userId != null) {
       _currentUserId = userId;
-      if (resultListener != null) {
-        resultListener.onSuccess(token);
+      print("Logged in user $_currentUserId");
+      if (completer != null) {
+        completer.complete(token);
       }
     } else {
-      _notifyError(resultListener, result);
+      _notifyError(completer, result);
     }
   }
 
@@ -116,8 +125,8 @@ class Meteor {
     }
   }
 
-  static void _notifyError(ResultListener resultListener, Call result) {
-    resultListener.onError(result.reply['reason']);
+  static void _notifyError(Completer completer, Call result) {
+    completer.completeError(result.reply['reason']);
   }
 
   /**
@@ -146,7 +155,10 @@ class Meteor {
   static Future<Map<String, dynamic>> userAsMap() async {
     Completer completer = Completer<Map<String, dynamic>>();
     Db db = await getMeteorDatabase();
+    print(db);
     var user = await db.collection("users").findOne({"_id": _currentUserId});
+    print(_currentUserId);
+    print(user);
     completer.complete(user);
     return completer.future;
   }
@@ -158,7 +170,15 @@ class Meteor {
   static Future<String> subscribe(String subscriptionName) async{
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, []);
-    completer.complete(result.id);
+    print("Result");
+    print(result.error.toString().contains("nosub"));;
+    if(result.error!= null && result.error.toString().contains("nosub")){
+      print("Error: "+result.error.toString());
+      completer.completeError("Subscription $subscriptionName not found");
+    }
+    else{
+      completer.complete(result.id);
+    }
     return completer.future;
   }
 

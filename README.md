@@ -2,6 +2,20 @@ A Dart package to interact with the Meteor framework.
 
 Connect your web or flutter apps, written in Dart, to the Meteor framework.
 
+
+
+
+
+## Features 
+
+- Connect to Meteor server
+- Use Meteor Subscriptions
+- Meteor Authentication
+- Call custom Methods on Meteor
+- Access underlying databases
+
+
+
 ## Usage
 
 ### Capturing the result of operations
@@ -10,6 +24,8 @@ You can use either the `then-catchError` or `await` syntax to capture the result
 
 **I'll be using the `await` syntax in this documentation to keep it short and straight.**
 You can use either `catchError` on `Future` object or `try/catch` syntax to catch errors.
+
+
 
 ### Connection Operations
 
@@ -54,15 +70,13 @@ main() async{
 var isConnected = Meteor.isConnected;		
 ```
 
-
-
 #### Disconnect from server
 
 ```dart
 Meteor.disconnect();
 ```
 
-
+
 
 ### Subscriptions
 
@@ -129,10 +143,98 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
    String result = await Accounts.forgotPassword(email);
    ```
 
-   
+5. Reset Password
 
-## Features and bugs
+   ```dart
+   String result = await Accounts.resetPassword(resetToken,newPassword);
+   ```
 
-Please file feature requests and bugs at the [issue tracker][tracker].
+6. Logout
 
-[tracker]: http://example.com/issues/replaceme
+   ```dart
+   await Meteor.logout();
+   ```
+
+7. Get logged in userId
+
+   ```dart
+   String userId = Meteor.currentUserId;
+   ```
+
+8. Check if logged in
+
+   ```dart
+   bool isLoggedIn = Meteor.isLoggedIn();
+   ```
+
+9. Get current user as map
+
+   ```dart
+   Map<String,dynamic> currentUser = await Meteor.userAsMap();
+   ```
+
+
+
+### Call Custom Methods
+
+#### Defining custom methods in meteor server
+
+```js
+export const helloWorld = new ValidatedMethod({
+  name: 'hello',
+  validate: null,
+  run({ firstname,lastname }) {
+    const message = "hello "+firstname+" "+lastname;
+    console.log(message);
+    return message;
+  },
+});
+```
+
+
+
+#### Invoking custom methods
+
+```dart
+var result = await Meteor.client
+  											 .call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
+print(result.reply);
+```
+
+
+
+### Using Mongo Databases to manage data
+
+Meteorify uses the `mongo_dart` package internally to provide access to actual database.
+
+For more instructions regarding use of `mongo_dart` , visit their [mongo_dart guide](https://github.com/mongo-dart/mongo_dart).
+
+#### Get Meteor Database
+
+```dart
+import 'package:mongo_dart/mongo_dart.dart';
+
+Db db = await Meteor.getMeteorDatabase();
+```
+
+
+
+#### Get custom database
+
+```dart
+import 'package:mongo_dart/mongo_dart.dart';
+
+Db db = await Meteor.getCustomDatabase(dbUrl);
+await db.open();
+```
+
+
+
+#### Get collection
+
+```dart
+import 'package:mongo_dart/mongo_dart.dart';
+
+DbCollection collection = await db.collection("collectionName");
+```
+

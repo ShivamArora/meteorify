@@ -74,9 +74,12 @@ class Accounts{
     Completer completer = Completer<String>();
     if(Meteor.isConnected){
       var result = await Meteor.client.call("resetPassword", [resetToken,newPassword]);
-      print(result.reply);
-      //TODO: Yet to test
-      completer.complete(result.reply.toString());
+      if(result.reply["error"]!=null){
+        _notifyError(completer, result);
+      }
+      else {
+        completer.complete(result.reply.toString());
+      }
     }
     else{
       print("Not connected to server");
@@ -90,9 +93,12 @@ class Accounts{
     Completer completer = Completer<String>();
     if(Meteor.isConnected){
       var result = await Meteor.client.call("verifyEmail",[verifyToken]);
-      print(result.reply);
-      //TODO: Yet to test
-      completer.complete(result.reply.toString());
+      if(result.reply["error"]!=null){
+        _notifyError(completer, result);
+      }
+      else {
+        completer.complete(result.reply.toString());
+      }
     }
     else{
       print("Not connected to server");

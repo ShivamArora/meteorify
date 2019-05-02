@@ -85,7 +85,7 @@ class Meteor {
         }
       ]);
       print(result.reply);
-      notifyLoginResult(result, completer);
+      _notifyLoginResult(result, completer);
       return completer.future;
     }
   }
@@ -98,13 +98,13 @@ class Meteor {
         {"resume": token}
       ]);
       print(result.reply);
-      notifyLoginResult(result, completer);
+      _notifyLoginResult(result, completer);
       return completer.future;
     }
   }
 
 
-  static void notifyLoginResult(Call result, Completer completer) {
+  static void _notifyLoginResult(Call result, Completer completer) {
     String userId = result.reply["id"];
     String token = result.reply["token"];
     if (userId != null) {

@@ -1,8 +1,16 @@
 name: meteorify
-description: A dart package to interact with Meteor
+description: >-
+  A dart package to interact with Meteor.
+  Meteorify provides the following features:
+  - Connect to Meteor servers
+  - Use Meteor Subscriptions
+  - Meteor Authentications services
+  - Call Custom Methods on meteor servers
+  - Access underlying databases
 version: 1.0.0
-# homepage: https://www.example.com
-author: shivamarora <email.shivamarora@gmail.com>
+homepage: https://github.com/ShivamArora/meteorify
+repository: https://github.com/ShivamArora/meteorify
+author: Shivam Arora <email.shivamarora@gmail.com>
 
 environment:
   sdk: '>=2.1.0 <3.0.0'

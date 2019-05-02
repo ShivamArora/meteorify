@@ -1,13 +1,9 @@
-import 'dart:async';
-
 import 'package:ddp/ddp.dart';
-import 'package:meteorify/meteorify.dart';
-import 'package:meteorify/src/listeners/listeners.dart';
 
-class SubscribedCollection{
+class SubscribedCollection {
   Collection _collection;
   String name;
-  SubscribedCollection(this._collection,this.name);
+  SubscribedCollection(this._collection, this.name);
 
   Map<String, dynamic> findOne(String id) {
     return _collection.findOne(id);
@@ -21,30 +17,28 @@ class SubscribedCollection{
     _collection.addUpdateListener(listener);
   }
 
-  Map<String, Map<String, dynamic>> find(Map<String,dynamic> selectors){
-    Map<String,Map<String,dynamic>> filteredCollection = Map<String,Map<String,dynamic>>();
+  Map<String, Map<String, dynamic>> find(Map<String, dynamic> selectors) {
+    Map<String, Map<String, dynamic>> filteredCollection =
+        Map<String, Map<String, dynamic>>();
     print("Finding docs");
     print(selectors.keys);
-    _collection.findAll().forEach((key,document){
+    _collection.findAll().forEach((key, document) {
       bool shouldAdd = true;
-      selectors.forEach((selector,value){
+      selectors.forEach((selector, value) {
         print("Key: $selector");
         print("Value: ${document[selector]}");
-        if(document[selector]!=value){
+        if (document[selector] != value) {
           shouldAdd = false;
         }
       });
-      if(shouldAdd){
+      if (shouldAdd) {
         print('Add');
-        filteredCollection[key]=document;
-      }
-      else{
+        filteredCollection[key] = document;
+      } else {
         print("Don't add");
       }
-
     });
 
     return filteredCollection;
   }
-
 }

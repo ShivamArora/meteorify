@@ -16,6 +16,19 @@ Connect your web or flutter apps, written in Dart, to the Meteor framework.
 
 
 
+## Dependency
+
+Add this to your package's `pubspec.yaml` file:
+
+```yaml
+dependencies:
+  meteorify: ^1.0.0
+```
+
+
+
+
+
 ## Usage
 
 ### Capturing the result of operations

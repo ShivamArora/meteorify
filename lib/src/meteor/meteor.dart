@@ -15,7 +15,7 @@ class Meteor {
   static bool isConnected = false;
   static String _currentUserId;
   static String get currentUserId => _currentUserId;
-  static Db db = null;
+  static Db db;
 
   static Future<ConnectionStatus> connect(String url) async {
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
@@ -47,18 +47,6 @@ class Meteor {
     _client.reconnect();
   }
 
-  /**
-   * TODO: Provide listeners for connection
-   *
-   static _addConnectionListener(
-      MeteorConnectionListener _meteorConnectionListener) {
-    _connectionListener = _meteorConnectionListener;
-  }
-
-  static _removeConnectionListener() {
-    _connectionListener = null;
-  }*/
-
   static void _notifyConnected() {
     if (_connectionListener != null) _connectionListener.onConnected();
   }
@@ -67,15 +55,15 @@ class Meteor {
     if (_connectionListener != null) _connectionListener.onDisconnected();
   }
 
-/**
+/*
  * Methods associated with authentication
  */
+
   static bool isLoggedIn() {
     return _currentUserId != null;
   }
 
-  static Future<String> loginWithPassword(
-      String email, String password) async {
+  static Future<String> loginWithPassword(String email, String password) async {
     Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call("login", [
@@ -88,10 +76,11 @@ class Meteor {
       _notifyLoginResult(result, completer);
       return completer.future;
     }
+    completer.completeError("Not connected to server");
+    return completer.future;
   }
 
-  static Future<String> loginWithToken(
-      String token) async {
+  static Future<String> loginWithToken(String token) async {
     Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call("login", [
@@ -101,8 +90,9 @@ class Meteor {
       _notifyLoginResult(result, completer);
       return completer.future;
     }
+    completer.completeError("Not connected to server");
+    return completer.future;
   }
-
 
   static void _notifyLoginResult(Call result, Completer completer) {
     String userId = result.reply["id"];
@@ -129,7 +119,7 @@ class Meteor {
     completer.completeError(result.reply['reason']);
   }
 
-  /**
+  /*
    * Methods associated with connection to MongoDB
    */
   static Future<Db> getMeteorDatabase() async {
@@ -149,7 +139,7 @@ class Meteor {
     return Db(dbUrl);
   }
 
-/**
+/*
  * Methods associated with current user
  */
   static Future<Map<String, dynamic>> userAsMap() async {
@@ -163,39 +153,40 @@ class Meteor {
     return completer.future;
   }
 
-/**
+/*
  * Methods associated with subscriptions
  */
 
-  static Future<String> subscribe(String subscriptionName) async{
+  static Future<String> subscribe(String subscriptionName) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, []);
     print("Result");
-    print(result.error.toString().contains("nosub"));;
-    if(result.error!= null && result.error.toString().contains("nosub")){
-      print("Error: "+result.error.toString());
+    print(result.error.toString().contains("nosub"));
+    ;
+    if (result.error != null && result.error.toString().contains("nosub")) {
+      print("Error: " + result.error.toString());
       completer.completeError("Subscription $subscriptionName not found");
-    }
-    else{
+    } else {
       completer.complete(result.id);
     }
     return completer.future;
   }
 
-  static Future<String> unsubscribe(String subscriptionId) async{
+  static Future<String> unsubscribe(String subscriptionId) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.unSub(subscriptionId);
     completer.complete(result.id);
     return completer.future;
   }
 
-/**
+/*
  * Methods related to collections
  */
-  static Future<SubscribedCollection> collection(String collectionName){
-    Completer<SubscribedCollection> completer = Completer<SubscribedCollection>();
+  static Future<SubscribedCollection> collection(String collectionName) {
+    Completer<SubscribedCollection> completer =
+        Completer<SubscribedCollection>();
     Collection collection = _client.collectionByName(collectionName);
-    completer.complete(SubscribedCollection(collection,collectionName));
+    completer.complete(SubscribedCollection(collection, collectionName));
     return completer.future;
   }
 }

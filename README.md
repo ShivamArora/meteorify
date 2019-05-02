@@ -1,8 +1,12 @@
+# Meteorify
+
+[![Pub](https://img.shields.io/pub/v/meteorify.svg)](https://pub.dartlang.org/packages/meteorify)
+
+
+
 A Dart package to interact with the Meteor framework.
 
 Connect your web or flutter apps, written in Dart, to the Meteor framework.
-
-
 
 
 

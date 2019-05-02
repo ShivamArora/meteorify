@@ -196,8 +196,7 @@ export const helloWorld = new ValidatedMethod({
 #### Invoking custom methods
 
 ```dart
-var result = await Meteor.client
-  											 .call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
+var result = await Meteor.client.call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
 print(result.reply);
 ```
 

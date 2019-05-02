@@ -22,7 +22,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.0
+  meteorify: ^1.0.1
 ```
 
 

@@ -7,7 +7,7 @@ description: >-
   - Meteor Authentications services
   - Call Custom Methods on meteor servers
   - Access underlying databases
-version: 1.0.0
+version: 1.0.1
 homepage: https://github.com/ShivamArora/meteorify
 repository: https://github.com/ShivamArora/meteorify
 author: Shivam Arora <email.shivamarora@gmail.com>

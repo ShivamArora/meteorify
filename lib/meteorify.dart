@@ -1,6 +1,6 @@
-/// Support for doing something awesome.
+/// A dart package to interact with Meteor.
 ///
-/// More dartdocs go here.
+/// Connect your web or flutter apps, written in Dart, with the Meteor framework.
 library meteorify;
 
 export 'src/accounts/accounts.dart';

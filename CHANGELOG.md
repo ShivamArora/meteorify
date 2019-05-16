@@ -1,3 +1,7 @@
+## 1.0.2
+- Provided a method to call serviceMethods exported from Meteor using `Meteor.call()`.
+- Provided documentation for most of the classes and methods.
+
 ## 1.0.1
 
 - Improve package health and fix analysis issues

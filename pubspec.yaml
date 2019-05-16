@@ -1,8 +1,8 @@
 name: meteorify
-description: >-
+description: |
   A dart package to interact with Meteor.
-  Connect your web or flutter apps, written in Dart, to the Meteor framework.
-version: 1.0.1
+  Connect your web or flutter apps, written in Dart, with the Meteor framework.
+version: 1.0.2
 homepage: https://github.com/ShivamArora/meteorify
 repository: https://github.com/ShivamArora/meteorify
 author: Shivam Arora <email.shivamarora@gmail.com>

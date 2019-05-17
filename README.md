@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.1
+  meteorify: ^1.0.2
 ```
 
 
@@ -213,8 +213,12 @@ export const helloWorld = new ValidatedMethod({
 #### Invoking custom methods
 
 ```dart
-var result = await Meteor.client.call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
-print(result.reply);
+try{
+  var result = await Meteor.call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
+	print(result);
+}catch(error){
+  print(error);
+}
 ```
 
 

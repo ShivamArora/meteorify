@@ -215,7 +215,7 @@ export const helloWorld = new ValidatedMethod({
 ```dart
 try{
   var result = await Meteor.call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
-	print(result);
+  print(result);
 }catch(error){
   print(error);
 }

@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:ddp/ddp.dart';
 import 'package:mongo_dart/mongo_dart.dart';
-import '../listeners/listeners.dart';
 import 'subscribed_collection.dart';
 
 /// An enum for describing the [ConnectionStatus].
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
+
+/// A listener for the current connection status.
+typedef MeteorConnectionListener(ConnectionStatus connectionStatus);
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -22,6 +24,9 @@ class Meteor {
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
 
+  /// Set the [_connectionListener]
+  static set connectionListener(MeteorConnectionListener listener) => _connectionListener = listener;
+
   /// Connection url of the Meteor server.
   static String _connectionUrl;
 
@@ -34,29 +39,65 @@ class Meteor {
   /// Get the [_currentUserId].
   static String get currentUserId => _currentUserId;
 
+  /// The status listener used to listen for connection status updates.
+  static StatusListener _statusListener;
+
+  /// The session token used to store the currently logged in user's login token.
+  static String _sessionToken;
+
   static Db db;
 
   /// Connect to the Meteor framework using the [url].
+  /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
+  /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
-  static Future<ConnectionStatus> connect(String url) async {
+  static Future<ConnectionStatus> connect(String url,{bool autoLoginOnReconnect=false, Duration heartbeatInterval=const Duration(minutes: 1)}) async {
+    ConnectionStatus connectionStatus =  await _connectToServer(url,heartbeatInterval);
+    _client.removeStatusListener(_statusListener);
+
+    _statusListener = (status) {
+      if (status == ConnectStatus.connected) {
+        isConnected = true;
+        if(autoLoginOnReconnect && _sessionToken!=null){
+          loginWithToken(_sessionToken);
+        }
+        _notifyConnected();
+      } else if (status == ConnectStatus.disconnected) {
+        isConnected = false;
+        _notifyDisconnected();
+      }
+    };
+    _client.addStatusListener(_statusListener);
+    return connectionStatus;
+  }
+
+  /// Connect to Meteor framework using the [url].
+  /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  ///
+  /// Returns a [ConnectionStatus] wrapped in a future.
+  static Future<ConnectionStatus> _connectToServer(String url,Duration heartbeatInterval) async{
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
     _client = DdpClient("meteor", _connectionUrl, "meteor");
+    _client.heartbeatInterval = heartbeatInterval;
     _client.connect();
 
-    _client.addStatusListener((status) {
+    _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        _notifyConnected();
-        completer.complete(ConnectionStatus.CONNECTED);
+        if(!completer.isCompleted){
+          completer.complete(ConnectionStatus.CONNECTED);
+        }
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
-        _notifyDisconnected();
-        completer.completeError(ConnectionStatus.DISCONNECTED);
+        if(!completer.isCompleted){
+          completer.completeError(ConnectionStatus.DISCONNECTED);
+        }
       }
-    });
+    };
+    _client.addStatusListener(_statusListener);
     return completer.future;
   }
 
@@ -71,12 +112,14 @@ class Meteor {
     _client.reconnect();
   }
 
+  /// Notifies the [_connectionListener] about the network connected status.
   static void _notifyConnected() {
-    if (_connectionListener != null) _connectionListener.onConnected();
+    if (_connectionListener != null) _connectionListener(ConnectionStatus.CONNECTED);
   }
 
+  /// Notifies the [_connectionListener] about the network disconnected status.
   static void _notifyDisconnected() {
-    if (_connectionListener != null) _connectionListener.onDisconnected();
+    if (_connectionListener != null) _connectionListener(ConnectionStatus.DISCONNECTED);
   }
 
 /*
@@ -133,6 +176,7 @@ class Meteor {
       _currentUserId = userId;
       print("Logged in user $_currentUserId");
       if (completer != null) {
+        _sessionToken = token;
         completer.complete(token);
       }
     } else {
@@ -144,6 +188,7 @@ class Meteor {
   static void logout() async {
     if (isConnected) {
       var result = await _client.call("logout", []);
+      _sessionToken = null;
       print(result.reply);
     }
   }

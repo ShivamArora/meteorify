@@ -11,7 +11,7 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  ddp: ^0.0.9
+  ddp: ^0.0.13
   mongo_dart: ^0.3.5
 
 dev_dependencies:

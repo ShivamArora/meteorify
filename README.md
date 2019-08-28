@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.2
+  meteorify: ^1.0.3
 ```
 
 
@@ -91,6 +91,14 @@ var isConnected = Meteor.isConnected;
 
 ```dart
 Meteor.disconnect();
+```
+
+#### Listen for connection updates
+
+```dart
+Meteor.connectionListener = (ConnectionStatus connectionStatus){
+  print(connectionStatus);
+}
 ```
 
 
@@ -199,7 +207,10 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
 ```js
 export const helloWorld = new ValidatedMethod({
   name: 'hello',
-  validate: null,
+  validate: new SimpleSchema({
+    firstname: {type: String},
+    lastname: {type: String},
+  }).validator(),
   run({ firstname,lastname }) {
     const message = "hello "+firstname+" "+lastname;
     console.log(message);

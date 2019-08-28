@@ -5,7 +5,6 @@ import 'package:ddp/ddp.dart';
 /// [SubscribedCollection] supports only read functionality useful in case of getting only the data subscribed by user and not any other data.
 /// To access other methods use `Meteor.getCustomDatabase(dbUrl)` and use the methods of the `Db` class.
 class SubscribedCollection {
-
   /// The internal collection instance.
   Collection _collection;
 

@@ -3,12 +3,10 @@ import 'dart:async';
 import '../meteor/meteor.dart';
 import 'package:ddp/ddp.dart';
 
-
 /// Provides useful methods of the `accounts-password` Meteor package.
 ///
 /// Assumes, your Meteor server uses the `accounts-password` package.
 class Accounts {
-
   /// Creates a new user using [username], [email], [password] and a [profile] map.
   ///
   /// Returns the `userId` of the created user.
@@ -84,8 +82,8 @@ class Accounts {
       String passwordResetToken, String newPassword) async {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
-      var result =
-          await Meteor.client.call("resetPassword", [passwordResetToken, newPassword]);
+      var result = await Meteor.client
+          .call("resetPassword", [passwordResetToken, newPassword]);
       if (result.reply["error"] != null) {
         _notifyError(completer, result);
       } else {

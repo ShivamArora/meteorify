@@ -14,7 +14,6 @@ typedef MeteorConnectionListener(ConnectionStatus connectionStatus);
 ///
 /// Provided methods use the same syntax as of the [Meteor] class used by the Meteor framework.
 class Meteor {
-
   /// The client used to interact with DDP framework.
   static DdpClient _client;
 
@@ -25,7 +24,8 @@ class Meteor {
   static MeteorConnectionListener _connectionListener;
 
   /// Set the [_connectionListener]
-  static set connectionListener(MeteorConnectionListener listener) => _connectionListener = listener;
+  static set connectionListener(MeteorConnectionListener listener) =>
+      _connectionListener = listener;
 
   /// Connection url of the Meteor server.
   static String _connectionUrl;
@@ -52,14 +52,17 @@ class Meteor {
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
-  static Future<ConnectionStatus> connect(String url,{bool autoLoginOnReconnect=false, Duration heartbeatInterval=const Duration(minutes: 1)}) async {
-    ConnectionStatus connectionStatus =  await _connectToServer(url,heartbeatInterval);
+  static Future<ConnectionStatus> connect(String url,
+      {bool autoLoginOnReconnect = false,
+      Duration heartbeatInterval = const Duration(minutes: 1)}) async {
+    ConnectionStatus connectionStatus =
+        await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        if(autoLoginOnReconnect && _sessionToken!=null){
+        if (autoLoginOnReconnect && _sessionToken != null) {
           loginWithToken(_sessionToken);
         }
         _notifyConnected();
@@ -76,7 +79,8 @@ class Meteor {
   /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in a future.
-  static Future<ConnectionStatus> _connectToServer(String url,Duration heartbeatInterval) async{
+  static Future<ConnectionStatus> _connectToServer(
+      String url, Duration heartbeatInterval) async {
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
@@ -87,12 +91,14 @@ class Meteor {
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        if(!completer.isCompleted){
+        _notifyConnected();
+        if (!completer.isCompleted) {
           completer.complete(ConnectionStatus.CONNECTED);
         }
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
-        if(!completer.isCompleted){
+        _notifyDisconnected();
+        if (!completer.isCompleted) {
           completer.completeError(ConnectionStatus.DISCONNECTED);
         }
       }
@@ -114,12 +120,14 @@ class Meteor {
 
   /// Notifies the [_connectionListener] about the network connected status.
   static void _notifyConnected() {
-    if (_connectionListener != null) _connectionListener(ConnectionStatus.CONNECTED);
+    if (_connectionListener != null)
+      _connectionListener(ConnectionStatus.CONNECTED);
   }
 
   /// Notifies the [_connectionListener] about the network disconnected status.
   static void _notifyDisconnected() {
-    if (_connectionListener != null) _connectionListener(ConnectionStatus.DISCONNECTED);
+    if (_connectionListener != null)
+      _connectionListener(ConnectionStatus.DISCONNECTED);
   }
 
 /*
@@ -201,6 +209,7 @@ class Meteor {
   /*
    * Methods associated with connection to MongoDB
    */
+
   /// Returns the default Meteor database after opening a connection.
   ///
   /// This database can be accessed using the [Db] class.
@@ -227,6 +236,7 @@ class Meteor {
 /*
  * Methods associated with current user
  */
+
   /// Returns the logged in user object as a map of properties.
   static Future<Map<String, dynamic>> userAsMap() async {
     Completer completer = Completer<Map<String, dynamic>>();
@@ -288,6 +298,7 @@ class Meteor {
 /*
  *  Methods related to meteor ddp calls
  */
+
   /// Makes a call to a service method exported from Meteor using the [methodName] and list of [arguments].
   ///
   /// Returns the value returned by the service method or an error using a [Future].

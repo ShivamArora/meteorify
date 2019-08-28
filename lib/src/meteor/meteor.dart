@@ -120,14 +120,16 @@ class Meteor {
 
   /// Notifies the [_connectionListener] about the network connected status.
   static void _notifyConnected() {
-    if (_connectionListener != null)
+    if (_connectionListener != null) {
       _connectionListener(ConnectionStatus.CONNECTED);
+    }
   }
 
   /// Notifies the [_connectionListener] about the network disconnected status.
   static void _notifyDisconnected() {
-    if (_connectionListener != null)
+    if (_connectionListener != null) {
       _connectionListener(ConnectionStatus.DISCONNECTED);
+    }
   }
 
 /*

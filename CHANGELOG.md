@@ -1,3 +1,9 @@
+## 1.0.4
+
+- Updated `mongo_dart` to provide Dart 2.5 compatibility.
+
+
+
 ## 1.0.3
 
 - Fixed the future already completed on status changed bug.

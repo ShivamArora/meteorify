@@ -258,15 +258,12 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName) async {
+  static Future<String> subscribe(String subscriptionName,{List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
-    Call result = await _client.sub(subscriptionName, []);
-    print("Result");
-    print(result.error.toString().contains("nosub"));
-    ;
+    Call result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains("nosub")) {
       print("Error: " + result.error.toString());
-      completer.completeError("Subscription $subscriptionName not found");
+      completer.completeError("Subscription $subscriptionName not found with given set of parameters");
     } else {
       completer.complete(result.id);
     }

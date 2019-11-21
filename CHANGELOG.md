@@ -1,3 +1,19 @@
+## 1.0.5
+
+- Now you can pass parameters to subscriptions. Use the following syntax:
+
+  ```dart
+  int subscriptionId = await Meteor.subscribe(subscriptionName, args=[arg1,arg2]);
+  ```
+
+- You can provide a custom db port for the meteor database. Use the following syntax:
+
+  ```dart
+  await Meteor.connect("ws://example.meteor.com/websocket", dbPort: 4001);
+  ```
+
+  
+
 ## 1.0.4
 
 - Updated `mongo_dart` to provide Dart 2.5 compatibility.

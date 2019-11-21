@@ -47,6 +47,8 @@ class Meteor {
 
   static Db db;
 
+  static int mongoDbPort;
+
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
@@ -54,7 +56,9 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(minutes: 1)}) async {
+      Duration heartbeatInterval = const Duration(minutes: 1),
+      int dbPort = 3001}) async {
+    mongoDbPort = dbPort;
     ConnectionStatus connectionStatus =
         await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
@@ -219,7 +223,7 @@ class Meteor {
     Completer<Db> completer = Completer<Db>();
     if (db == null) {
       final uri = Uri.parse(_connectionUrl);
-      String dbUrl = "mongodb://" + uri.host + ":3001/meteor";
+      String dbUrl = "mongodb://" + uri.host + ":$mongoDbPort/meteor";
       print("Connecting to $dbUrl");
       db = Db(dbUrl);
       await db.open();
@@ -258,15 +262,12 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName) async {
+  static Future<String> subscribe(String subscriptionName,{List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
-    Call result = await _client.sub(subscriptionName, []);
-    print("Result");
-    print(result.error.toString().contains("nosub"));
-    ;
+    Call result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains("nosub")) {
       print("Error: " + result.error.toString());
-      completer.completeError("Subscription $subscriptionName not found");
+      completer.completeError("Subscription $subscriptionName not found with given set of parameters");
     } else {
       completer.complete(result.id);
     }

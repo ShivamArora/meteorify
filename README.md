@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.4
+  meteorify: ^1.0.5
 ```
 
 
@@ -109,6 +109,14 @@ Meteor.connectionListener = (ConnectionStatus connectionStatus){
 
 ```dart
 var subscriptionId = await Meteor.subscribe(subscriptionName);
+```
+
+
+
+#### Subscriptions with Parameters
+
+```dart
+var subscriptionId = await Meteor.subscribe(subscriptionName,args:[arg1,arg2]);
 ```
 
 

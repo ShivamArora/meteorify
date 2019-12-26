@@ -54,7 +54,7 @@ Using `then-catchError`:
 import 'package:meteorify/meteorify.dart';
 
 main() async{
-  Meteor.connect("ws://example.meteor.com/websocket")
+  Meteor.connect('ws://example.meteor.com/websocket')
       .then((status){
           // Do something after connection is successful
       })
@@ -72,7 +72,7 @@ import 'package:meteorify/meteorify.dart';
 
 main() async{
   try{
-      var status = await Meteor.connect("ws://example.meteor.com/websocket");
+      var status = await Meteor.connect('ws://example.meteor.com/websocket');
       // Do something after connection is successful
   }catch(error){
       print(error);
@@ -233,7 +233,7 @@ export const helloWorld = new ValidatedMethod({
 
 ```dart
 try{
-  var result = await Meteor.call("hello",[{"firstname":"Shivam","lastname":"Arora"}]);
+  var result = await Meteor.call('hello',[{'firstname':'Shivam','lastname':'Arora'}]);
   print(result);
 }catch(error){
   print(error);
@@ -274,6 +274,6 @@ await db.open();
 ```dart
 import 'package:mongo_dart/mongo_dart.dart';
 
-DbCollection collection = await db.collection("collectionName");
+DbCollection collection = await db.collection('collectionName');
 ```
 

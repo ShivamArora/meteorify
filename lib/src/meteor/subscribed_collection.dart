@@ -6,7 +6,7 @@ import 'package:ddp/ddp.dart';
 /// To access other methods use `Meteor.getCustomDatabase(dbUrl)` and use the methods of the `Db` class.
 class SubscribedCollection {
   /// The internal collection instance.
-  Collection _collection;
+  final Collection _collection;
 
   /// Name of the collection.
   String name;
@@ -31,14 +31,14 @@ class SubscribedCollection {
   /// Returns specific objects from a subscribed collection using a set of [selectors].
   Map<String, Map<String, dynamic>> find(Map<String, dynamic> selectors) {
     Map<String, Map<String, dynamic>> filteredCollection =
-        Map<String, Map<String, dynamic>>();
-    print("Finding docs");
+        <String, Map<String, dynamic>>{};
+    print('Finding docs');
     print(selectors.keys);
     _collection.findAll().forEach((key, document) {
       bool shouldAdd = true;
       selectors.forEach((selector, value) {
-        print("Key: $selector");
-        print("Value: ${document[selector]}");
+        print('Key: $selector');
+        print('Value: ${document[selector]}');
         if (document[selector] != value) {
           shouldAdd = false;
         }

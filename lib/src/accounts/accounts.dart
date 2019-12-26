@@ -15,22 +15,22 @@ class Accounts {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
       var map = {
-        "username": username,
-        "email": email,
-        "password": password,
-        "profile": profile
+        'username': username,
+        'email': email,
+        'password': password,
+        'profile': profile
       };
-      var result = await Meteor.client.call("createUser", [map]);
+      var result = await Meteor.client.call('createUser', [map]);
       print(result.reply);
       //Handle result
-      if (result.reply["error"] != null) {
+      if (result.reply['error'] != null) {
         _notifyError(completer, result);
       } else {
         completer.complete(result.reply['id']);
         ;
       }
     } else {
-      completer.completeError("Not connected to server");
+      completer.completeError('Not connected to server');
     }
     return completer.future;
   }
@@ -41,17 +41,17 @@ class Accounts {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
       var result = await Meteor.client
-          .call("changePassword", [oldPassword, newPassword]);
+          .call('changePassword', [oldPassword, newPassword]);
       print(result.reply);
       //Handle result
       if (result.reply['passwordChanged'] != null) {
-        completer.complete("Password changed");
+        completer.complete('Password changed');
       } else {
         _notifyError(completer, result);
       }
     } else {
-      print("Not connected to server");
-      completer.completeError("Not connected to server");
+      print('Not connected to server');
+      completer.completeError('Not connected to server');
     }
     return completer.future;
   }
@@ -60,19 +60,19 @@ class Accounts {
   static Future<String> forgotPassword(String email) async {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
-      var result = await Meteor.client.call("forgotPassword", [
-        {"email": email}
+      var result = await Meteor.client.call('forgotPassword', [
+        {'email': email}
       ]);
       print(result.reply);
       //Handle result
       if (result.reply == null) {
-        completer.complete("Email sent");
+        completer.complete('Email sent');
       } else {
         _notifyError(completer, result);
       }
     } else {
-      print("Not connected to server");
-      completer.completeError("Not connected to server");
+      print('Not connected to server');
+      completer.completeError('Not connected to server');
     }
     return completer.future;
   }
@@ -83,32 +83,32 @@ class Accounts {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
       var result = await Meteor.client
-          .call("resetPassword", [passwordResetToken, newPassword]);
-      if (result.reply["error"] != null) {
+          .call('resetPassword', [passwordResetToken, newPassword]);
+      if (result.reply['error'] != null) {
         _notifyError(completer, result);
       } else {
         completer.complete(result.reply.toString());
       }
     } else {
-      print("Not connected to server");
-      completer.completeError("Not connected to server");
+      print('Not connected to server');
+      completer.completeError('Not connected to server');
     }
     return completer.future;
   }
 
   /// Verifies the user email by taking the [verificationToken] sent to the user.
-  static verifyEmail(String verificationToken) async {
+  static Future<String> verifyEmail(String verificationToken) async {
     Completer completer = Completer<String>();
     if (Meteor.isConnected) {
-      var result = await Meteor.client.call("verifyEmail", [verificationToken]);
-      if (result.reply["error"] != null) {
+      var result = await Meteor.client.call('verifyEmail', [verificationToken]);
+      if (result.reply['error'] != null) {
         _notifyError(completer, result);
       } else {
         completer.complete(result.reply.toString());
       }
     } else {
-      print("Not connected to server");
-      completer.completeError("Not connected to server");
+      print('Not connected to server');
+      completer.completeError('Not connected to server');
     }
     return completer.future;
   }

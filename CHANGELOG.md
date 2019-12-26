@@ -1,3 +1,11 @@
+## 1.0.6
+
+- Implemented dart analysis suggestions for better maintenance.
+
+- Upgraded `mongo_dart` to version `0.4.0`.
+
+  
+
 ## 1.0.5
 
 - Now you can pass parameters to subscriptions. Use the following syntax:

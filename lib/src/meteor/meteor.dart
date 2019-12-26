@@ -8,7 +8,7 @@ import 'subscribed_collection.dart';
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
 /// A listener for the current connection status.
-typedef MeteorConnectionListener(ConnectionStatus connectionStatus);
+typedef MeteorConnectionListener = void Function(ConnectionStatus connectionStatus);
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -88,7 +88,7 @@ class Meteor {
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
-    _client = DdpClient("meteor", _connectionUrl, "meteor");
+    _client = DdpClient('meteor', _connectionUrl, 'meteor');
     _client.heartbeatInterval = heartbeatInterval;
     _client.connect();
 
@@ -112,13 +112,13 @@ class Meteor {
   }
 
   /// Disconnect from Meteor framework.
-  static disconnect() {
+  static void disconnect() {
     _client.close();
     _notifyDisconnected();
   }
 
   /// Reconnect with the Meteor framework.
-  static reconnect() {
+  static void reconnect() {
     _client.reconnect();
   }
 
@@ -151,17 +151,17 @@ class Meteor {
   static Future<String> loginWithPassword(String email, String password) async {
     Completer completer = Completer<String>();
     if (isConnected) {
-      var result = await _client.call("login", [
+      var result = await _client.call('login', [
         {
-          "password": password,
-          "user": {"email": email}
+          'password': password,
+          'user': {'email': email}
         }
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);
       return completer.future;
     }
-    completer.completeError("Not connected to server");
+    completer.completeError('Not connected to server');
     return completer.future;
   }
 
@@ -171,24 +171,24 @@ class Meteor {
   static Future<String> loginWithToken(String loginToken) async {
     Completer completer = Completer<String>();
     if (isConnected) {
-      var result = await _client.call("login", [
-        {"resume": loginToken}
+      var result = await _client.call('login', [
+        {'resume': loginToken}
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);
       return completer.future;
     }
-    completer.completeError("Not connected to server");
+    completer.completeError('Not connected to server');
     return completer.future;
   }
 
   /// Used internally to notify the future about success/failure of login process.
   static void _notifyLoginResult(Call result, Completer completer) {
-    String userId = result.reply["id"];
-    String token = result.reply["token"];
+    String userId = result.reply['id'];
+    String token = result.reply['token'];
     if (userId != null) {
       _currentUserId = userId;
-      print("Logged in user $_currentUserId");
+      print('Logged in user $_currentUserId');
       if (completer != null) {
         _sessionToken = token;
         completer.complete(token);
@@ -201,7 +201,7 @@ class Meteor {
   /// Logs out the user.
   static void logout() async {
     if (isConnected) {
-      var result = await _client.call("logout", []);
+      var result = await _client.call('logout', []);
       _sessionToken = null;
       print(result.reply);
     }
@@ -223,8 +223,8 @@ class Meteor {
     Completer<Db> completer = Completer<Db>();
     if (db == null) {
       final uri = Uri.parse(_connectionUrl);
-      String dbUrl = "mongodb://" + uri.host + ":$mongoDbPort/meteor";
-      print("Connecting to $dbUrl");
+      String dbUrl = 'mongodb://${uri.host}:$mongoDbPort/meteor';
+      print('Connecting to $dbUrl');
       db = Db(dbUrl);
       await db.open();
     }
@@ -248,7 +248,7 @@ class Meteor {
     Completer completer = Completer<Map<String, dynamic>>();
     Db db = await getMeteorDatabase();
     print(db);
-    var user = await db.collection("users").findOne({"_id": _currentUserId});
+    var user = await db.collection('users').findOne({'_id': _currentUserId});
     print(_currentUserId);
     print(user);
     completer.complete(user);
@@ -265,9 +265,9 @@ class Meteor {
   static Future<String> subscribe(String subscriptionName,{List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, args);
-    if (result.error != null && result.error.toString().contains("nosub")) {
-      print("Error: " + result.error.toString());
-      completer.completeError("Subscription $subscriptionName not found with given set of parameters");
+    if (result.error != null && result.error.toString().contains('nosub')) {
+      print('Error: ${result.error.toString()}');
+      completer.completeError('Subscription $subscriptionName not found with given set of parameters');
     } else {
       completer.complete(result.id);
     }

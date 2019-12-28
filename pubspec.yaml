@@ -5,7 +5,6 @@ description: |
 version: 1.0.6
 homepage: https://github.com/ShivamArora/meteorify
 repository: https://github.com/ShivamArora/meteorify
-author: Shivam Arora <email.shivamarora@gmail.com>
 
 environment:
   sdk: '>=2.1.0 <3.0.0'

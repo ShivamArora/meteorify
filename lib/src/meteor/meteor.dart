@@ -8,7 +8,8 @@ import 'subscribed_collection.dart';
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
 /// A listener for the current connection status.
-typedef MeteorConnectionListener = void Function(ConnectionStatus connectionStatus);
+typedef MeteorConnectionListener = void Function(
+    ConnectionStatus connectionStatus);
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -145,16 +146,22 @@ class Meteor {
     return _currentUserId != null;
   }
 
-  /// Login using the user's [email] and [password].
+  /// Login using the user's [email] or [username] and [password].
   ///
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithPassword(String email, String password) async {
+  static Future<String> loginWithPassword(String user, String password) async {
     Completer completer = Completer<String>();
     if (isConnected) {
+      var query;
+      if (!user.contains('@')) {
+        query = {'username': user};
+      } else {
+        query = {'email': user};
+      }
       var result = await _client.call('login', [
         {
           'password': password,
-          'user': {'email': email}
+          'user': query
         }
       ]);
       print(result.reply);
@@ -262,12 +269,14 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName,{List<dynamic> args = const []}) async {
+  static Future<String> subscribe(String subscriptionName,
+      {List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains('nosub')) {
       print('Error: ${result.error.toString()}');
-      completer.completeError('Subscription $subscriptionName not found with given set of parameters');
+      completer.completeError(
+          'Subscription $subscriptionName not found with given set of parameters');
     } else {
       completer.complete(result.id);
     }

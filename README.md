@@ -155,7 +155,11 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
 1. Login with password
 
    ```dart
+   // Login with email
    String loginToken = await Meteor.loginWithPassword(email,password);
+
+   // Login with username
+   String loginToken = await Meteor.loginWithPassword(username,password);
    ```
 
 2. Login with token

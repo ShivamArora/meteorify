@@ -169,21 +169,14 @@ class Meteor {
   ///
   /// [email] the email to register with. Must be fetched from the Google oAuth API
   /// [userId] the unique google userId. Must be fetched from the Google oAuth API
-  /// [idToken] the idToken from Google oAuth API
-  /// [oAuthToken] the oAuthToken from Google oAuth API for server side validation
+  /// [authHeaders] the authHeaders from Google oAuth API for server side validation
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithGoogle(String email, String userId, String idToken, Object authHeaders) async {
+  static Future<String> loginWithGoogle(String email, String userId, Object authHeaders) async {
     final bool googleLoginPlugin = true;
     Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call('login', [
-        {
-          'email': email,
-          'userId': userId,
-          'idToken': idToken,
-          'oAuthToken': authHeaders,
-          'googleLoginPlugin': googleLoginPlugin
-        }
+        {'email': email, 'userId': userId, 'oAuthToken': authHeaders, 'googleLoginPlugin': googleLoginPlugin}
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);

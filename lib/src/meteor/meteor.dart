@@ -172,7 +172,7 @@ class Meteor {
   /// [idToken] the idToken from Google oAuth API
   /// [oAuthToken] the oAuthToken from Google oAuth API for server side validation
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithGoogle(String email, String userId, String idToken, String oAuthToken) async {
+  static Future<String> loginWithGoogle(String email, String userId, String idToken, Object authHeaders) async {
     final bool googleLoginPlugin = true;
     Completer completer = Completer<String>();
     if (isConnected) {
@@ -181,7 +181,7 @@ class Meteor {
           'email': email,
           'userId': userId,
           'idToken': idToken,
-          'oAuthToken': oAuthToken,
+          'oAuthToken': authHeaders,
           'googleLoginPlugin': googleLoginPlugin
         }
       ]);

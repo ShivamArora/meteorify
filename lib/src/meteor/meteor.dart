@@ -8,7 +8,8 @@ import 'subscribed_collection.dart';
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
 /// A listener for the current connection status.
-typedef MeteorConnectionListener = void Function(ConnectionStatus connectionStatus);
+typedef MeteorConnectionListener = void Function(
+    ConnectionStatus connectionStatus);
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -24,7 +25,8 @@ class Meteor {
   static MeteorConnectionListener _connectionListener;
 
   /// Set the [_connectionListener]
-  static set connectionListener(MeteorConnectionListener listener) => _connectionListener = listener;
+  static set connectionListener(MeteorConnectionListener listener) =>
+      _connectionListener = listener;
 
   /// Connection url of the Meteor server.
   static String _connectionUrl;
@@ -58,7 +60,8 @@ class Meteor {
       Duration heartbeatInterval = const Duration(minutes: 1),
       int dbPort = 3001}) async {
     mongoDbPort = dbPort;
-    ConnectionStatus connectionStatus = await _connectToServer(url, heartbeatInterval);
+    ConnectionStatus connectionStatus =
+        await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
     _statusListener = (status) {
@@ -81,7 +84,8 @@ class Meteor {
   /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in a future.
-  static Future<ConnectionStatus> _connectToServer(String url, Duration heartbeatInterval) async {
+  static Future<ConnectionStatus> _connectToServer(
+      String url, Duration heartbeatInterval) async {
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
@@ -171,12 +175,18 @@ class Meteor {
   /// [userId] the unique Google userId. Must be fetched from the Google oAuth API
   /// [authHeaders] the authHeaders from Google oAuth API for server side validation
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithGoogle(String email, String userId, Object authHeaders) async {
+  static Future<String> loginWithGoogle(
+      String email, String userId, Object authHeaders) async {
     final bool googleLoginPlugin = true;
     Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call('login', [
-        {'email': email, 'userId': userId, 'authHeaders': authHeaders, 'googleLoginPlugin': googleLoginPlugin}
+        {
+          'email': email,
+          'userId': userId,
+          'authHeaders': authHeaders,
+          'googleLoginPlugin': googleLoginPlugin
+        }
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);
@@ -283,12 +293,14 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName, {List<dynamic> args = const []}) async {
+  static Future<String> subscribe(String subscriptionName,
+      {List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains('nosub')) {
       print('Error: ${result.error.toString()}');
-      completer.completeError('Subscription $subscriptionName not found with given set of parameters');
+      completer.completeError(
+          'Subscription $subscriptionName not found with given set of parameters');
     } else {
       completer.complete(result.id);
     }
@@ -312,7 +324,8 @@ class Meteor {
   /// [SubscribedCollection] supports only read operations.
   /// For more supported operations use the methods of the [Db] class from `mongo_dart` library.
   static Future<SubscribedCollection> collection(String collectionName) {
-    Completer<SubscribedCollection> completer = Completer<SubscribedCollection>();
+    Completer<SubscribedCollection> completer =
+        Completer<SubscribedCollection>();
     Collection collection = _client.collectionByName(collectionName);
     completer.complete(SubscribedCollection(collection, collectionName));
     return completer.future;
@@ -325,7 +338,8 @@ class Meteor {
   /// Makes a call to a service method exported from Meteor using the [methodName] and list of [arguments].
   ///
   /// Returns the value returned by the service method or an error using a [Future].
-  static Future<dynamic> call(String methodName, List<dynamic> arguments) async {
+  static Future<dynamic> call(
+      String methodName, List<dynamic> arguments) async {
     Completer<dynamic> completer = Completer<dynamic>();
     var result = await _client.call(methodName, arguments);
     if (result.error != null) {

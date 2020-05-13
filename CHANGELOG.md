@@ -1,3 +1,7 @@
+## 1.0.1
+  - Connect and loginWithPassword exemple
+
+
 ## 1.0.0
 
 - Initial version

@@ -1,8 +1,5 @@
 # Meteorify
 
-[![Pub](https://img.shields.io/pub/v/meteorify.svg)](https://pub.dartlang.org/packages/meteorify)
-
-
 
 Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package to interact with the Meteor framework.
 

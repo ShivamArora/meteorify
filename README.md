@@ -4,7 +4,7 @@
 
 
 
-A Dart package to interact with the Meteor framework.
+Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package to interact with the Meteor framework.
 
 Connect your web or flutter apps, written in Dart, to the Meteor framework.
 
@@ -15,6 +15,7 @@ Connect your web or flutter apps, written in Dart, to the Meteor framework.
 - Connect to Meteor server
 - Use Meteor Subscriptions
 - Meteor Authentication
+- oAuth Authentication with Google (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
 - Call custom Methods on Meteor
 - Access underlying databases
 
@@ -26,7 +27,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.6
+  enahnced_meteorify: ^1.0.0
 ```
 
 
@@ -145,7 +146,7 @@ SubscribedCollection collection = await Meteor.collection(collectionName);
 #### Creating New Account
 
 ```dart
-var userId = await Accounts.createUser(username,email,password,profileOptions);
+var userId = await Accounts.createUser(username, email, password, profileOptions);
 ```
 
 
@@ -156,10 +157,10 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
 
    ```dart
    // Login with email
-   String loginToken = await Meteor.loginWithPassword(email,password);
+   String loginToken = await Meteor.loginWithPassword(email, password);
 
    // Login with username
-   String loginToken = await Meteor.loginWithPassword(username,password);
+   String loginToken = await Meteor.loginWithPassword(username, password);
    ```
 
 2. Login with token
@@ -168,43 +169,52 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
    String token = await Meteor.loginWithToken(loginToken);
    ```
 
-3. Change Password (need to be logged in)
+3. Login with Google
 
    ```dart
-   String result = await Accounts.changePassword(oldPassword,newPassword);
+   // `email` to register with. Must be fetched from the Google oAuth API
+   // The unique Google `userId`. Must be fetched from the Google oAuth API
+   // `authHeaders` from Google oAuth API for server side validation
+   String token = await Meteor.loginWithGoogle(email, userId, authHeaders)
    ```
 
-4. Forgot Password
+4. Change Password (need to be logged in)
+
+   ```dart
+   String result = await Accounts.changePassword(oldPassword, newPassword);
+   ```
+
+5. Forgot Password
 
    ```dart
    String result = await Accounts.forgotPassword(email);
    ```
 
-5. Reset Password
+6. Reset Password
 
    ```dart
-   String result = await Accounts.resetPassword(resetToken,newPassword);
+   String result = await Accounts.resetPassword(resetToken, newPassword);
    ```
 
-6. Logout
+7. Logout
 
    ```dart
    await Meteor.logout();
    ```
 
-7. Get logged in userId
+8. Get logged in userId
 
    ```dart
    String userId = Meteor.currentUserId;
    ```
 
-8. Check if logged in
+9.  Check if logged in
 
    ```dart
    bool isLoggedIn = Meteor.isLoggedIn();
    ```
 
-9. Get current user as map
+11. Get current user as map
 
    ```dart
    Map<String,dynamic> currentUser = await Meteor.userAsMap();
@@ -224,7 +234,7 @@ export const helloWorld = new ValidatedMethod({
     lastname: {type: String},
   }).validator(),
   run({ firstname,lastname }) {
-    const message = "hello "+firstname+" "+lastname;
+    const message = "hello "+ firstname + " " + lastname;
     console.log(message);
     return message;
   },

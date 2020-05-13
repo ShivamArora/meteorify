@@ -176,7 +176,7 @@ class Meteor {
     Completer completer = Completer<String>();
     if (isConnected) {
       var result = await _client.call('login', [
-        {'email': email, 'userId': userId, 'oAuthToken': authHeaders, 'googleLoginPlugin': googleLoginPlugin}
+        {'email': email, 'userId': userId, 'authHeaders': authHeaders, 'googleLoginPlugin': googleLoginPlugin}
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);

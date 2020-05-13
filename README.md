@@ -24,7 +24,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^1.0.0
+  enhanced_meteorify: ^1.0.3
 ```
 
 

@@ -233,6 +233,7 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
          var userId = result.accessToken.userId;
          var token = result.accessToken.userId;
          var res = await Meteor.loginWithFacebook(userId, token);
+         
          print(res);
         break;
       case FacebookLoginStatus.cancelledByUser:

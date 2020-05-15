@@ -196,6 +196,30 @@ class Meteor {
     return completer.future;
   }
 
+  ///Login or register a new user with the Facebook Login API
+  ///
+  /// [userId] the unique Facebook userId. Must be fetched from the Facebook Login API
+  /// [token] the token from Facebook API Login for server side validation
+  /// Returns the `loginToken` after logging in.
+  static Future<String> loginWithFacebook(String userId, String token) async {
+    final bool facebookLoginPlugin = true;
+    Completer completer = Completer<String>();
+    if (isConnected) {
+      var result = await _client.call('login', [
+        {
+          'userId': userId,
+          'token': token,
+          'facebookLoginPlugin': facebookLoginPlugin
+        }
+      ]);
+      print(result.reply);
+      _notifyLoginResult(result, completer);
+      return completer.future;
+    }
+    completer.completeError('Not connected to server');
+    return completer.future;
+  }
+
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.

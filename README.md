@@ -1,4 +1,4 @@
-# Meteorify
+# Enhanced Meteorify
 
 
 Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package to interact with the Meteor framework.
@@ -12,7 +12,7 @@ Connect your web or flutter apps, written in Dart, to the Meteor framework.
 - Connect to Meteor server
 - Use Meteor Subscriptions
 - Meteor Authentication
-- oAuth Authentication with Google (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
+- oAuth Authentication with Google and Facebook (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
 - Call custom Methods on Meteor
 - Access underlying databases
 
@@ -175,37 +175,106 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    String token = await Meteor.loginWithGoogle(email, userId, authHeaders)
    ```
 
-4. Change Password (need to be logged in)
+   Install google_sing_in package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      google_sign_in: ^4.4.4
+   ```
+
+   ```dart
+   import 'package:google_sign_in/google_sign_in.dart';
+
+   GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['profile', 'email', 'openid'],
+   );
+
+   Future<void> _loginWithGoogle(context) async {
+    try {
+      var info = await _googleSignIn.signIn();
+      var authHeaders = await info.authHeaders;
+      var result = await Meteor.loginWithGoogle(info.email, info.id, authHeaders);
+     
+      print(result);
+    } catch (error) {
+      print(error);
+    }
+   }
+   ```
+
+4. Login with Facebook
+   
+   ```dart
+   // [userId] the unique Facebook userId. Must be fetched from the Facebook Login API
+   // [token] the token from Facebook API Login for server side validation
+   String token = await Meteor.loginWithFacebook(userId, token)
+   ```
+
+   Install flutter_facebook_login package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      flutter_facebook_login: ^3.0.0
+   ```
+
+   ```dart
+   import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+
+   
+    Future<void> _onClickEntrarFacebook(context) async {
+    final result = await facebookLogin.logIn(['email, public_profile']);
+
+    switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+         var userId = result.accessToken.userId;
+         var token = result.accessToken.userId;
+         var res = await Meteor.loginWithFacebook(userId, token);
+         print(res);
+        break;
+      case FacebookLoginStatus.cancelledByUser:
+        print(':/');
+        break;
+      case FacebookLoginStatus.error:
+        print('error: ${result.errorMessage}');
+        break;
+    }
+   }
+   ```
+5. Change Password (need to be logged in)
 
    ```dart
    String result = await Accounts.changePassword(oldPassword, newPassword);
    ```
 
-5. Forgot Password
+6. Forgot Password
 
    ```dart
    String result = await Accounts.forgotPassword(email);
    ```
 
-6. Reset Password
+7. Reset Password
 
    ```dart
    String result = await Accounts.resetPassword(resetToken, newPassword);
    ```
 
-7. Logout
+8. Logout
 
    ```dart
    await Meteor.logout();
    ```
 
-8. Get logged in userId
+9.  Get logged in userId
 
    ```dart
    String userId = Meteor.currentUserId;
    ```
 
-9.  Check if logged in
+11. Check if logged in
 
    ```dart
    bool isLoggedIn = Meteor.isLoggedIn();

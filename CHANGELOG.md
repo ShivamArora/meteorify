@@ -1,8 +1,12 @@
+  ## 1.0.3
+  - Update README
+  - Authentication with Facebook (needs sever-side code in JavaScript for use with Meteor)
+ 
 ## 1.0.2
   - 🚀
 
 ## 1.0.1
-  - Connect and loginWithPassword exemple
+  - Connect and login with loginWithPassword example
 
 
 ## 1.0.0

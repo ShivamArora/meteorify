@@ -1,3 +1,9 @@
+  ## 1.0.4
+  - Update README
+  - Authentication with Apple* (needs sever-side code in JavaScript for use with Meteor)
+  
+  *Login with Apple currently only supports iOS 13+.
+  
   ## 1.0.3
   - Update README
   - Authentication with Facebook (needs sever-side code in JavaScript for use with Meteor)

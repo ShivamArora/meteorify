@@ -12,10 +12,11 @@ Connect your web or flutter apps, written in Dart, to the Meteor framework.
 - Connect to Meteor server
 - Use Meteor Subscriptions
 - Meteor Authentication
-- oAuth Authentication with Google and Facebook (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
+- oAuth Authentication with Google, Facebook and Apple* (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
 - Call custom Methods on Meteor
 - Access underlying databases
 
+*Login with Apple currently only supports iOS 13+.
 
 
 ## Dependency
@@ -224,7 +225,7 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    ```dart
    import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
-   Future<void> _onClickEntrarFacebook(context) async {
+   Future<void> _loginWithFacebook(context) async {
       final result = await facebookLogin.logIn(['email, public_profile']);
 
       switch (result.status) {
@@ -245,31 +246,82 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    }
    ```
 
-5. Change Password (need to be logged in)
+5. Login with Apple
+   
+   ```dart
+   // [userId] the unique Apple userId. Must be fetch from the Apple Login API
+   // [email] to register with. Must be fetched from the Apple Login API
+   // [givenName] user's given Name. Must be fetched from the Apple Login API
+   // [lastName] user's last Name. Must be fetched from the Apple Login API
+   String token = await Meteor.loginWithApple(userId, email, givenName, lastName)
+   ```
+
+
+   Install flutter_facebook_login package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      apple_sign_in: ^0.1.0
+   ```
+
+   ```dart
+   Future<void> _loginWithApple(context) async {
+    try {
+      final AuthorizationResult result = await AppleSignIn.performRequests([
+        AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])
+      ]);
+
+      switch (result.status) {
+        case AuthorizationStatus.authorized:
+          var email = result.credential.email;
+          var givenName = result.credential.fullName.givenName;
+          var lastName = result.credential.fullName.familyName;
+          var userId = result.credential.user;
+
+          var res = Meteor.loginWithApple(userId, email, givenName, lastName);
+         
+          print(res);
+          break;
+        case AuthorizationStatus.error:
+          print('Erro: ${result.error.localizedDescription}');
+          break;
+        case AuthorizationStatus.cancelled:
+          print(':/');
+          break;
+      }
+    } catch (error) {
+      print(error);
+    }
+  }
+   ```
+
+6. Change Password (need to be logged in)
 
    ```dart
    String result = await Accounts.changePassword(oldPassword, newPassword);
    ```
 
-6. Forgot Password
+7. Forgot Password
 
    ```dart
    String result = await Accounts.forgotPassword(email);
    ```
 
-7. Reset Password
+8. Reset Password
 
    ```dart
    String result = await Accounts.resetPassword(resetToken, newPassword);
    ```
 
-8. Logout
+9.  Logout
 
    ```dart
    await Meteor.logout();
    ```
 
-9.  Get logged in userId
+11. Get logged in userId
 
    ```dart
    String userId = Meteor.currentUserId;

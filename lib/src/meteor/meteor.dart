@@ -220,6 +220,28 @@ class Meteor {
     return completer.future;
   }
 
+  static Future<String> loginWithApple(
+      String userId, String email, String givenName, String lastName) async {
+    final bool appleLoginPlugin = true;
+    Completer completer = Completer<String>();
+    if (isConnected) {
+      var result = await _client.call('login', [
+        {
+          'userId': userId,
+          'email': email,
+          'givenName': givenName,
+          'lastName': lastName,
+          'appleLoginPLugin': appleLoginPlugin
+        }
+      ]);
+      print(result.reply);
+      _notifyLoginResult(result, completer);
+      return completer.future;
+    }
+    completer.completeError('Not connected to server');
+    return completer.future;
+  }
+
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.

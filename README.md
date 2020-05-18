@@ -224,27 +224,27 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    ```dart
    import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 
-   
-    Future<void> _onClickEntrarFacebook(context) async {
-    final result = await facebookLogin.logIn(['email, public_profile']);
+   Future<void> _onClickEntrarFacebook(context) async {
+      final result = await facebookLogin.logIn(['email, public_profile']);
 
-    switch (result.status) {
+      switch (result.status) {
       case FacebookLoginStatus.loggedIn:
          var userId = result.accessToken.userId;
          var token = result.accessToken.userId;
          var res = await Meteor.loginWithFacebook(userId, token);
          
          print(res);
-        break;
+         break;
       case FacebookLoginStatus.cancelledByUser:
-        print(':/');
-        break;
+         print(':/');
+         break;
       case FacebookLoginStatus.error:
-        print('error: ${result.errorMessage}');
-        break;
-    }
+         print('error: ${result.errorMessage}');
+         break;
+      }
    }
    ```
+
 5. Change Password (need to be logged in)
 
    ```dart

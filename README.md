@@ -25,7 +25,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^1.0.3
+  enhanced_meteorify: ^1.0.4
 ```
 
 
@@ -257,7 +257,7 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    ```
 
 
-   Install flutter_facebook_login package
+   Install apple_sign_in package
    ```yml
    dependencies:
       flutter:
@@ -267,6 +267,8 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    ```
 
    ```dart
+   import 'package:apple_sign_in/apple_sign_in.dart';
+
    Future<void> _loginWithApple(context) async {
     try {
       final AuthorizationResult result = await AppleSignIn.performRequests([
@@ -278,7 +280,6 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
           var email = result.credential.email;
           var givenName = result.credential.fullName.givenName;
           var lastName = result.credential.fullName.familyName;
-          var userId = result.credential.user;
 
           var res = Meteor.loginWithApple(userId, email, givenName, lastName);
          

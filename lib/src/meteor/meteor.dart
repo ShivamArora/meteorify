@@ -231,7 +231,7 @@ class Meteor {
           'email': email,
           'givenName': givenName,
           'lastName': lastName,
-          'appleLoginPLugin': appleLoginPlugin
+          'appleLoginPlugin': appleLoginPlugin
         }
       ]);
       print(result.reply);

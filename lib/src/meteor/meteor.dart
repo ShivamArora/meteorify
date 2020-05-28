@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ddp/ddp.dart';
+import 'package:enhanced_meteorify/src/utils/utils.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'subscribed_collection.dart';
 
@@ -221,14 +223,15 @@ class Meteor {
   }
 
   static Future<String> loginWithApple(
-      String userId, String email, String givenName, String lastName) async {
+      String userId, List<int> jwt, String givenName, String lastName) async {
     final bool appleLoginPlugin = true;
     Completer completer = Completer<String>();
     if (isConnected) {
+      var token = Utils.parseJwt(utf8.decode(jwt));
       var result = await _client.call('login', [
         {
           'userId': userId,
-          'email': email,
+          'email': token['email'],
           'givenName': givenName,
           'lastName': lastName,
           'appleLoginPlugin': appleLoginPlugin

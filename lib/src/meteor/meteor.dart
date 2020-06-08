@@ -222,6 +222,13 @@ class Meteor {
     return completer.future;
   }
 
+  ///Login or register a new user with the Apple Login API
+  ///
+  /// [userId] the unique Apple userId. Must be fetched from the Apple Login API
+  /// [jwt] the jwt from Apple API Login to get user's e-mail. (result.credential.identityToken)
+  /// [givenName] user's given name. Must be fetched from the Apple Login API
+  /// [lastName] user's last name. Must be fetched from the Apple Login API
+  /// Returns the `loginToken` after logging in.
   static Future<String> loginWithApple(
       String userId, List<int> jwt, String givenName, String lastName) async {
     final bool appleLoginPlugin = true;

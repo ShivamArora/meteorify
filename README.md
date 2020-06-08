@@ -250,10 +250,10 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    
    ```dart
    // [userId] the unique Apple userId. Must be fetch from the Apple Login API
-   // [email] to register with. Must be fetched from the Apple Login API
+   // [jwt] the jwt from Apple API Login to get user's e-mail
    // [givenName] user's given Name. Must be fetched from the Apple Login API
    // [lastName] user's last Name. Must be fetched from the Apple Login API
-   String token = await Meteor.loginWithApple(userId, email, givenName, lastName)
+   String token = await Meteor.loginWithApple(userId, jwt, givenName, lastName)
    ```
 
 
@@ -277,11 +277,12 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
 
       switch (result.status) {
         case AuthorizationStatus.authorized:
-          var email = result.credential.email;
+          var userId = result.credential.user;
+          var jwt = result.credential.identityToken;
           var givenName = result.credential.fullName.givenName;
           var lastName = result.credential.fullName.familyName;
 
-          var res = Meteor.loginWithApple(userId, email, givenName, lastName);
+          var res = await Meteor.loginWithApple(userId, jwt, givenName, lastName);
          
           print(res);
           break;

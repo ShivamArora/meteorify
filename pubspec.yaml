@@ -10,7 +10,10 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  ddp: ^0.0.13
+  ddp:
+    git: 
+      url: git://github.com/wendellrocha/ddp.git
+      ref: websocket
   mongo_dart: ^0.4.0
 
 dev_dependencies:

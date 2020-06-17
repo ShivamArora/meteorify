@@ -23,6 +23,8 @@ class Meteor {
   /// Get the [_client].
   static DdpClient get client => _client;
 
+  static Stream get serverConnection => _client.serverConnection;
+
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
 

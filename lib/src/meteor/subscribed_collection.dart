@@ -1,4 +1,4 @@
-import 'package:ddp/ddp.dart';
+import 'package:enhanced_ddp/enhanced_ddp.dart';
 
 /// Provides useful methods to read data from a collection on the frontend.
 ///

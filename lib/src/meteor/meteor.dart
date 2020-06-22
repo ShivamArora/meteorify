@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:ddp/ddp.dart';
+import 'package:enhanced_ddp/enhanced_ddp.dart';
 import 'package:enhanced_meteorify/src/utils/utils.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import 'subscribed_collection.dart';

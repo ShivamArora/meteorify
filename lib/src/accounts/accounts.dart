@@ -1,7 +1,8 @@
 import 'dart:async';
 
+import 'package:enhanced_ddp/enhanced_ddp.dart';
+
 import '../meteor/meteor.dart';
-import 'package:ddp/ddp.dart';
 
 /// Provides useful methods of the `accounts-password` Meteor package.
 ///

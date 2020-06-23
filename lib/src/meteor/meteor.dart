@@ -88,30 +88,36 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in a future.
   static Future<ConnectionStatus> _connectToServer(
       String url, Duration heartbeatInterval) async {
-    Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
+    try {
+      Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
-    _connectionUrl = url;
-    _client = DdpClient('meteor', _connectionUrl, 'meteor');
-    _client.heartbeatInterval = heartbeatInterval;
-    _client.connect();
+      _connectionUrl = url;
+      _client = DdpClient('meteor', _connectionUrl, 'meteor');
+      _client.heartbeatInterval = heartbeatInterval;
+      _client.connect();
 
-    _statusListener = (status) {
-      if (status == ConnectStatus.connected) {
-        isConnected = true;
-        _notifyConnected();
-        if (!completer.isCompleted) {
-          completer.complete(ConnectionStatus.CONNECTED);
+      _statusListener = (status) {
+        if (status == ConnectStatus.connected) {
+          isConnected = true;
+          _notifyConnected();
+          if (!completer.isCompleted) {
+            completer.complete(ConnectionStatus.CONNECTED);
+          }
+        } else if (status == ConnectStatus.disconnected) {
+          isConnected = false;
+          _notifyDisconnected();
+          if (!completer.isCompleted) {
+            completer.completeError(ConnectionStatus.DISCONNECTED);
+          }
         }
-      } else if (status == ConnectStatus.disconnected) {
-        isConnected = false;
-        _notifyDisconnected();
-        if (!completer.isCompleted) {
-          completer.completeError(ConnectionStatus.DISCONNECTED);
-        }
-      }
-    };
-    _client.addStatusListener(_statusListener);
-    return completer.future;
+      };
+      _client.addStatusListener(_statusListener);
+      return completer.future;
+    } catch (error) {
+      print('DDP ERROR: $error');
+      isConnected = false;
+      reconnect();
+    }
   }
 
   /// Disconnect from Meteor framework.

@@ -26,9 +26,6 @@ class Meteor {
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
 
-  static MeteorConnectionListener get meteorConnectionListener =>
-      _connectionListener;
-
   /// Set the [_connectionListener]
   static set connectionListener(MeteorConnectionListener listener) =>
       _connectionListener = listener;
@@ -47,6 +44,8 @@ class Meteor {
 
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
+
+  static StatusListener get statusListener => _statusListener;
 
   /// The session token used to store the currently logged in user's login token.
   static String _sessionToken;

@@ -1,3 +1,6 @@
+## 1.0.7
+  - Update enhanced_ddp package
+  
 ## 1.0.6
   - Update enhanced_ddp package
 

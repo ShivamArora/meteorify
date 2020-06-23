@@ -27,11 +27,6 @@ class DDPConnectionStatus {
 ///
 /// Provided methods use the same syntax as of the [Meteor] class used by the Meteor framework.
 class Meteor {
-  static StreamController<DDPConnectionStatus> _statusStramController =
-      StreamController();
-
-  static DDPConnectionStatus _connectionStatus;
-
   /// The client used to interact with DDP framework.
   static DdpClient _client;
 
@@ -97,10 +92,6 @@ class Meteor {
     return connectionStatus;
   }
 
-  static Stream<DDPConnectionStatus> status() {
-    return _statusStramController.stream;
-  }
-
   /// Connect to Meteor framework using the [url].
   /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
@@ -114,24 +105,15 @@ class Meteor {
     _client.heartbeatInterval = heartbeatInterval;
     _client.connect();
 
-    _connectionStatus.status = ConnectStatus.connecting;
-    _statusStramController.sink.add(_connectionStatus);
-
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        _connectionStatus.status = ConnectStatus.connected;
-        _connectionStatus.connected = true;
-        _statusStramController.sink.add(_connectionStatus);
         _notifyConnected();
         if (!completer.isCompleted) {
           completer.complete(ConnectionStatus.CONNECTED);
         }
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
-        _connectionStatus.status = ConnectStatus.disconnected;
-        _connectionStatus.connected = false;
-        _statusStramController.sink.add(_connectionStatus);
         _notifyDisconnected();
         if (!completer.isCompleted) {
           completer.completeError(ConnectionStatus.DISCONNECTED);
@@ -145,17 +127,11 @@ class Meteor {
   /// Disconnect from Meteor framework.
   static void disconnect() {
     _client.close();
-    _connectionStatus.status = ConnectStatus.disconnected;
-    _connectionStatus.connected = false;
-    _statusStramController.sink.add(_connectionStatus);
     _notifyDisconnected();
   }
 
   /// Reconnect with the Meteor framework.
   static void reconnect() {
-    _connectionStatus.status = ConnectStatus.dialing;
-    _connectionStatus.connected = false;
-    _statusStramController.sink.add(_connectionStatus);
     _client.reconnect();
   }
 

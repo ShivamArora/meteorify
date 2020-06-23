@@ -97,6 +97,7 @@ class Meteor {
       _client.connect();
 
       _statusListener = (status) {
+        print('print: $status');
         if (status == ConnectStatus.connected) {
           isConnected = true;
           _notifyConnected();
@@ -114,7 +115,6 @@ class Meteor {
       _client.addStatusListener(_statusListener);
       return completer.future;
     } catch (error) {
-      print('DDP ERROR: $error');
       isConnected = false;
       reconnect();
     }

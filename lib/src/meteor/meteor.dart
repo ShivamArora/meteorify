@@ -88,42 +88,31 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in a future.
   static Future<ConnectionStatus> _connectToServer(
       String url, Duration heartbeatInterval) async {
-    try {
-      Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
+    Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
-      _connectionUrl = url;
-      _client = DdpClient('meteor', _connectionUrl, 'meteor');
-      _client.heartbeatInterval = heartbeatInterval;
-      _client.connect();
+    _connectionUrl = url;
+    _client = DdpClient('meteor', _connectionUrl, 'meteor');
+    _client.heartbeatInterval = heartbeatInterval;
+    _client.connect();
 
-      _statusListener = (status) {
-        print('print: $status');
-        if (status == ConnectStatus.connected) {
-          isConnected = true;
-          _notifyConnected();
-          if (!completer.isCompleted) {
-            completer.complete(ConnectionStatus.CONNECTED);
-          }
-        } else if (status == ConnectStatus.disconnected) {
-          isConnected = false;
-          _notifyDisconnected();
-          if (!completer.isCompleted) {
-            completer.completeError(ConnectionStatus.DISCONNECTED);
-          }
+    _statusListener = (status) {
+      print('print: $status');
+      if (status == ConnectStatus.connected) {
+        isConnected = true;
+        _notifyConnected();
+        if (!completer.isCompleted) {
+          completer.complete(ConnectionStatus.CONNECTED);
         }
-      };
-      _client.addStatusListener(_statusListener);
-      return completer.future;
-    } catch (error) {
-      isConnected = false;
-      _connectionListener(ConnectionStatus.DISCONNECTED);
-      reconnect();
-      _reconnectUser();
-    }
-  }
-
-  static void _reconnectUser() async {
-    await loginWithToken(_sessionToken);
+      } else if (status == ConnectStatus.disconnected) {
+        isConnected = false;
+        _notifyDisconnected();
+        if (!completer.isCompleted) {
+          completer.completeError(ConnectionStatus.DISCONNECTED);
+        }
+      }
+    };
+    _client.addStatusListener(_statusListener);
+    return completer.future;
   }
 
   /// Disconnect from Meteor framework.

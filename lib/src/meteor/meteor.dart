@@ -116,8 +116,14 @@ class Meteor {
       return completer.future;
     } catch (error) {
       isConnected = false;
+      _connectionListener(ConnectionStatus.DISCONNECTED);
       reconnect();
+      _reconnectUser();
     }
+  }
+
+  static void _reconnectUser() async {
+    await loginWithToken(_sessionToken);
   }
 
   /// Disconnect from Meteor framework.

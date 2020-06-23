@@ -1,3 +1,6 @@
+## 1.0.6
+  - Update enhanced_ddp package
+
 ## 1.0.5
   - Remove DDP package
   - Add Enhanced_DDP package

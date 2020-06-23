@@ -13,16 +13,6 @@ enum ConnectionStatus { CONNECTED, DISCONNECTED }
 typedef MeteorConnectionListener = void Function(
     ConnectionStatus connectionStatus);
 
-class DDPConnectionStatus {
-  bool connected;
-  ConnectStatus status;
-
-  @override
-  String toString() {
-    return 'connected: $connected, status: $status';
-  }
-}
-
 /// Provides useful methods for interacting with the Meteor server.
 ///
 /// Provided methods use the same syntax as of the [Meteor] class used by the Meteor framework.

@@ -26,6 +26,9 @@ class Meteor {
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
 
+  static MeteorConnectionListener get meteorConnectionListener =>
+      _connectionListener;
+
   /// Set the [_connectionListener]
   static set connectionListener(MeteorConnectionListener listener) =>
       _connectionListener = listener;
@@ -96,7 +99,6 @@ class Meteor {
     _client.connect();
 
     _statusListener = (status) {
-      print('print: $status');
       if (status == ConnectStatus.connected) {
         isConnected = true;
         _notifyConnected();

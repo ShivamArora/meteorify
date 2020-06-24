@@ -66,10 +66,11 @@ class Meteor {
         await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
-    String _token = await Utils.getString('lokinToken');
+    String _token = await Utils.getString('loginToken');
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
+        print('token: $_token');
         if (autoLoginOnReconnect && _token != null) {
           loginWithToken(_token);
         } else if (autoLoginOnReconnect && _sessionToken != null) {
@@ -280,7 +281,7 @@ class Meteor {
       _currentUserId = userId;
       print('Logged in user $_currentUserId');
       if (completer != null) {
-        Utils.setString('lokinToken', token);
+        Utils.setString('loginToken', token);
         _sessionToken = token;
         completer.complete(token);
       }

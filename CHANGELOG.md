@@ -1,3 +1,7 @@
+## 1.0.8
+  - Save loginToken on shared preferences
+  - Auto reconnect on connection lost (enhanced_ddp)
+
 ## 1.0.7
   - Update enhanced_ddp package
   

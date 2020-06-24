@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 class Utils {
   static Map<String, dynamic> parseJwt(String token) {
     final parts = token.split('.');
@@ -32,5 +34,20 @@ class Utils {
     }
 
     return utf8.decode(base64Url.decode(output));
+  }
+
+  static Future<String> getString(String key) async {
+    var prefs = await SharedPreferences.getInstance();
+    return prefs.getString(key) ?? '';
+  }
+
+  static void setString(String key, String s) async {
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, s);
+  }
+
+  static void remove(String key) async {
+    var prefs = await SharedPreferences.getInstance();
+    await prefs.remove(key);
   }
 }

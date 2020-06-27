@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:enhanced_ddp/enhanced_ddp.dart';
 import 'package:enhanced_meteorify/src/utils/utils.dart';
 import 'package:mongo_dart/mongo_dart.dart';
@@ -66,7 +67,7 @@ class Meteor {
         await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
-    String _token = await Utils.getString('loginToken');
+    String _token = await Utils.getString('token');
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
@@ -165,7 +166,13 @@ class Meteor {
         query = {'email': user};
       }
       var result = await _client.call('login', [
-        {'password': password, 'user': query}
+        {
+          'user': query,
+          'password': {
+            'digest': sha256.convert(utf8.encode(password)).toString(),
+            'algorithm': 'sha-256'
+          },
+        }
       ]);
       print(result.reply);
       _notifyLoginResult(result, completer);
@@ -274,14 +281,15 @@ class Meteor {
   }
 
   /// Used internally to notify the future about success/failure of login process.
-  static void _notifyLoginResult(Call result, Completer completer) {
+  static void _notifyLoginResult(Call result, Completer completer) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
     if (userId != null) {
       _currentUserId = userId;
       print('Logged in user $_currentUserId');
       if (completer != null) {
-        Utils.setString('loginToken', token);
+        var _token = await Utils.setString('token', token);
+        print('loginToken: $_token');
         _sessionToken = token;
         completer.complete(token);
       }
@@ -294,7 +302,7 @@ class Meteor {
   static void logout() async {
     if (isConnected) {
       var result = await _client.call('logout', []);
-      Utils.remove('loginToken');
+      await Utils.remove('loginToken');
       _sessionToken = null;
 
       print(result.reply);

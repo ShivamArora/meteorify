@@ -1,3 +1,6 @@
+## 1.0.9
+  - Sending encrypted password over the ddp
+
 ## 1.0.8
   - Save loginToken on shared preferences
   - Auto reconnect on connection lost (enhanced_ddp)

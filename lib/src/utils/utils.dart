@@ -41,9 +41,10 @@ class Utils {
     return prefs.getString(key) ?? '';
   }
 
-  static void setString(String key, String s) async {
+  static Future setString(String key, String s) async {
     var prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, s);
+    return {'key': key, 'string': s};
   }
 
   static void remove(String key) async {

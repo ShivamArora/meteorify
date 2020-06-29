@@ -60,7 +60,7 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(seconds: 5),
+      Duration heartbeatInterval = const Duration(seconds: 15),
       int dbPort = 3001}) async {
     mongoDbPort = dbPort;
     ConnectionStatus connectionStatus =

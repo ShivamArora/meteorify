@@ -1,3 +1,6 @@
+## 1.0.10
+  - Update enhanced_ddp package
+  
 ## 1.0.9
   - Sending encrypted password over the ddp
 

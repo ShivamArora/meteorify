@@ -72,9 +72,10 @@ class Meteor {
       if (status == ConnectStatus.connected) {
         isConnected = true;
         print('token: $_token');
-        if (autoLoginOnReconnect && _token != null) {
+        if (autoLoginOnReconnect && _token != null && _token.isNotEmpty) {
           loginWithToken(_token);
         } else if (autoLoginOnReconnect && _sessionToken != null) {
+          print('_sessionToken: $_token');
           loginWithToken(_sessionToken);
         }
         _notifyConnected();

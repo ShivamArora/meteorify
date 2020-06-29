@@ -285,7 +285,7 @@ class Meteor {
   static void _notifyLoginResult(Call result, Completer completer) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
-    print('login result: $result');
+    print('login result: $result.reply');
     if (userId != null) {
       _currentUserId = userId;
       print('Logged in user $_currentUserId');

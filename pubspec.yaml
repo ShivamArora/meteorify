@@ -10,7 +10,12 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  enhanced_ddp: ^1.0.6
+  enhanced_ddp:
+    git:
+      url: git://github.com/wendellrocha/ddp.git
+      ref: onDone
+
+  #enhanced_ddp: ^1.0.6
   mongo_dart: ^0.4.0
   shared_preferences: ^0.5.7+3
   crypto: ^2.1.5

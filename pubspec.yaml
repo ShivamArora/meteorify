@@ -13,7 +13,7 @@ dependencies:
   enhanced_ddp:
     git:
       url: git://github.com/wendellrocha/ddp.git
-      ref: reset
+      ref: listener
 
   # enhanced_ddp: ^1.0.7
   mongo_dart: ^0.4.0

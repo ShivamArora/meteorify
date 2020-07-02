@@ -27,6 +27,7 @@ class Meteor {
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
 
+
   /// Set the [_connectionListener]
   static set connectionListener(MeteorConnectionListener listener) =>
       _connectionListener = listener;

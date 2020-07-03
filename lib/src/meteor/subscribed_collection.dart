@@ -28,6 +28,10 @@ class SubscribedCollection {
     _collection.addUpdateListener(listener);
   }
 
+  void removeUpdateListeners() {
+    _collection.removeUpdateListeners();
+  }
+
   /// Returns specific objects from a subscribed collection using a set of [selectors].
   Map<String, Map<String, dynamic>> find(Map<String, dynamic> selectors) {
     Map<String, Map<String, dynamic>> filteredCollection =

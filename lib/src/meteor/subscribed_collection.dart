@@ -28,8 +28,8 @@ class SubscribedCollection {
     _collection.addUpdateListener(listener);
   }
 
-  void removeUpdateListeners() {
-    _collection.removeUpdateListeners();
+  void removeUpdateListener(UpdateListener listener) {
+    _collection.removeUpdateListener(listener);
   }
 
   /// Returns specific objects from a subscribed collection using a set of [selectors].

@@ -28,7 +28,7 @@ class SubscribedCollection {
     _collection.addUpdateListener(listener);
   }
 
-  void removeUpdateListener(UpdateListener listener) {
+  void removeUpdateListeners() {
     _collection.removeUpdateListeners();
   }
 

@@ -1,7 +1,9 @@
+## 1.0.12
+  - Update enhanced_ddp package
+
 ## 1.0.11
   - Update enhanced_ddp package
   - Add SubscribedCollection.removeUpdateListener
-
   
 ## 1.0.10
   - Update enhanced_ddp package

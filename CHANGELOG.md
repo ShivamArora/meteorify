@@ -1,3 +1,6 @@
+## 2.0.0-dev.4
+ - Update enhanced_ddp package
+
 ## 2.0.0-dev.3
  - Update enhanced_ddp package
   

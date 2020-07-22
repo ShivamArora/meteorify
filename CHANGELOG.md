@@ -1,3 +1,9 @@
+## 2.0.0-dev.1
+ - 🚀
+ - Remove mongo_dart package
+ - Drop support to getCustomDatabase and getMeteorDatabase
+ - Update shared_preferences to support flutter web
+
 ## 1.0.12
   - Update enhanced_ddp package
 

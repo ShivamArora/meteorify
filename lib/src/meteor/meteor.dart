@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:enhanced_ddp/enhanced_ddp.dart';
 import 'package:enhanced_meteorify/src/utils/utils.dart';
-import 'package:mongo_dart/mongo_dart.dart';
 import 'subscribed_collection.dart';
 
 /// An enum for describing the [ConnectionStatus].
@@ -26,7 +25,6 @@ class Meteor {
 
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
-
 
   /// Set the [_connectionListener]
   static set connectionListener(MeteorConnectionListener listener) =>
@@ -50,10 +48,6 @@ class Meteor {
   /// The session token used to store the currently logged in user's login token.
   static String _sessionToken;
 
-  static Db db;
-
-  static int mongoDbPort;
-
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
@@ -61,14 +55,11 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(seconds: 15),
-      int dbPort = 3001}) async {
-    mongoDbPort = dbPort;
-    ConnectionStatus connectionStatus =
-        await _connectToServer(url, heartbeatInterval);
+      Duration heartbeatInterval = const Duration(seconds: 15)}) async {
+    var connectionStatus = await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
-    String _token = await Utils.getString('token');
+    var _token = await Utils.getString('token');
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
@@ -317,49 +308,6 @@ class Meteor {
     completer.completeError(result.reply['reason']);
   }
 
-  /*
-   * Methods associated with connection to MongoDB
-   */
-
-  /// Returns the default Meteor database after opening a connection.
-  ///
-  /// This database can be accessed using the [Db] class.
-  static Future<Db> getMeteorDatabase() async {
-    Completer<Db> completer = Completer<Db>();
-    if (db == null) {
-      final uri = Uri.parse(_connectionUrl);
-      String dbUrl = 'mongodb://${uri.host}:$mongoDbPort/meteor';
-      print('Connecting to $dbUrl');
-      db = Db(dbUrl);
-      await db.open();
-    }
-    completer.complete(db);
-    return completer.future;
-  }
-
-  /// Returns connection to a Meteor database using [dbUrl].
-  ///
-  /// You need to manually open the connection using `db.open()` after getting the connection.
-  static Db getCustomDatabase(String dbUrl) {
-    return Db(dbUrl);
-  }
-
-/*
- * Methods associated with current user
- */
-
-  /// Returns the logged in user object as a map of properties.
-  static Future<Map<String, dynamic>> userAsMap() async {
-    Completer completer = Completer<Map<String, dynamic>>();
-    Db db = await getMeteorDatabase();
-    print(db);
-    var user = await db.collection('users').findOne({'_id': _currentUserId});
-    print(_currentUserId);
-    print(user);
-    completer.complete(user);
-    return completer.future;
-  }
-
 /*
  * Methods associated with subscriptions
  */
@@ -396,7 +344,6 @@ class Meteor {
   /// Returns a [SubscribedCollection] using the [collectionName].
   ///
   /// [SubscribedCollection] supports only read operations.
-  /// For more supported operations use the methods of the [Db] class from `mongo_dart` library.
   static Future<SubscribedCollection> collection(String collectionName) {
     Completer<SubscribedCollection> completer =
         Completer<SubscribedCollection>();

@@ -10,7 +10,7 @@ environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  enhanced_ddp: ^1.0.10-dev.2
+  enhanced_ddp: ^1.0.10-dev.3
   shared_preferences: ^0.5.8
   crypto: ^2.1.5
 

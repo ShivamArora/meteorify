@@ -1,4 +1,7 @@
 ## 2.0.0-dev.1
+ - Update enhanced_ddp package
+
+## 2.0.0-dev.1
  - 🚀
  - Remove mongo_dart package
  - Drop support to getCustomDatabase and getMeteorDatabase

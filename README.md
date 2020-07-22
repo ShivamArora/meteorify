@@ -1,5 +1,5 @@
 # Enhanced Meteorify
-
+[![Pub](https://img.shields.io/pub/v/enhanced_meteorify?include_prereleases)](https://pub.dev/packages/enhanced_meteorify)
 
 Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package to interact with the Meteor framework.
 

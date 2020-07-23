@@ -1,10 +1,7 @@
-# Meteorify
+# Enhanced Meteorify
+[![Pub](https://img.shields.io/pub/v/enhanced_meteorify?include_prereleases)](https://pub.dev/packages/enhanced_meteorify)
 
-[![Pub](https://img.shields.io/pub/v/meteorify.svg)](https://pub.dartlang.org/packages/meteorify)
-
-
-
-A Dart package to interact with the Meteor framework.
+Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package to interact with the Meteor framework.
 
 Connect your web or flutter apps, written in Dart, to the Meteor framework.
 
@@ -15,9 +12,11 @@ Connect your web or flutter apps, written in Dart, to the Meteor framework.
 - Connect to Meteor server
 - Use Meteor Subscriptions
 - Meteor Authentication
+- oAuth Authentication with Google, Facebook and Apple* (needs [server-side code in JavaScript](https://gist.github.com/wendellrocha/794b2154bb18ce2b81b21c5da79cc76e) for use with Meteor)
 - Call custom Methods on Meteor
 - Access underlying databases
 
+*Login with Apple currently only supports iOS 13+.
 
 
 ## Dependency
@@ -26,11 +25,8 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.6
+  enhanced_meteorify: ^2.0.0
 ```
-
-
-
 
 
 ## Usage
@@ -145,7 +141,7 @@ SubscribedCollection collection = await Meteor.collection(collectionName);
 #### Creating New Account
 
 ```dart
-var userId = await Accounts.createUser(username,email,password,profileOptions);
+var userId = await Accounts.createUser(username, email, password, profileOptions);
 ```
 
 
@@ -155,7 +151,11 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
 1. Login with password
 
    ```dart
-   String loginToken = await Meteor.loginWithPassword(email,password);
+   // Login with email
+   String loginToken = await Meteor.loginWithPassword(email, password);
+
+   // Login with username
+   String loginToken = await Meteor.loginWithPassword(username, password);
    ```
 
 2. Login with token
@@ -164,43 +164,175 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
    String token = await Meteor.loginWithToken(loginToken);
    ```
 
-3. Change Password (need to be logged in)
+3. Login with Google
 
    ```dart
-   String result = await Accounts.changePassword(oldPassword,newPassword);
+   // `email` to register with. Must be fetched from the Google oAuth API
+   // The unique Google `userId`. Must be fetched from the Google oAuth API
+   // `authHeaders` from Google oAuth API for server side validation
+   String token = await Meteor.loginWithGoogle(email, userId, authHeaders)
    ```
 
-4. Forgot Password
+   Install google_sing_in package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      google_sign_in: ^4.4.4
+   ```
+
+   ```dart
+   import 'package:google_sign_in/google_sign_in.dart';
+
+   GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['profile', 'email', 'openid'],
+   );
+
+   Future<void> _loginWithGoogle(context) async {
+    try {
+      var info = await _googleSignIn.signIn();
+      var authHeaders = await info.authHeaders;
+      var result = await Meteor.loginWithGoogle(info.email, info.id, authHeaders);
+     
+      print(result);
+    } catch (error) {
+      print(error);
+    }
+   }
+   ```
+
+4. Login with Facebook
+   
+   ```dart
+   // [userId] the unique Facebook userId. Must be fetched from the Facebook Login API
+   // [token] the token from Facebook API Login for server side validation
+   String token = await Meteor.loginWithFacebook(userId, token)
+   ```
+
+   Install flutter_facebook_login package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      flutter_facebook_login: ^3.0.0
+   ```
+
+   ```dart
+   import 'package:flutter_facebook_login/flutter_facebook_login.dart';
+
+   Future<void> _loginWithFacebook(context) async {
+      final result = await facebookLogin.logIn(['email, public_profile']);
+
+      switch (result.status) {
+      case FacebookLoginStatus.loggedIn:
+         var userId = result.accessToken.userId;
+         var token = result.accessToken.userId;
+         var res = await Meteor.loginWithFacebook(userId, token);
+         
+         print(res);
+         break;
+      case FacebookLoginStatus.cancelledByUser:
+         print(':/');
+         break;
+      case FacebookLoginStatus.error:
+         print('error: ${result.errorMessage}');
+         break;
+      }
+   }
+   ```
+
+5. Login with Apple
+   
+   ```dart
+   // [userId] the unique Apple userId. Must be fetch from the Apple Login API
+   // [jwt] the jwt from Apple API Login to get user's e-mail
+   // [givenName] user's given Name. Must be fetched from the Apple Login API
+   // [lastName] user's last Name. Must be fetched from the Apple Login API
+   String token = await Meteor.loginWithApple(userId, jwt, givenName, lastName)
+   ```
+
+
+   Install apple_sign_in package
+   ```yml
+   dependencies:
+      flutter:
+         sdk: flutter
+      
+      apple_sign_in: ^0.1.0
+   ```
+
+   ```dart
+   import 'package:apple_sign_in/apple_sign_in.dart';
+
+   Future<void> _loginWithApple(context) async {
+    try {
+      final AuthorizationResult result = await AppleSignIn.performRequests([
+        AppleIdRequest(requestedScopes: [Scope.email, Scope.fullName])
+      ]);
+
+      switch (result.status) {
+        case AuthorizationStatus.authorized:
+          var userId = result.credential.user;
+          var jwt = result.credential.identityToken;
+          var givenName = result.credential.fullName.givenName;
+          var lastName = result.credential.fullName.familyName;
+
+          var res = await Meteor.loginWithApple(userId, jwt, givenName, lastName);
+         
+          print(res);
+          break;
+        case AuthorizationStatus.error:
+          print('Erro: ${result.error.localizedDescription}');
+          break;
+        case AuthorizationStatus.cancelled:
+          print(':/');
+          break;
+      }
+    } catch (error) {
+      print(error);
+    }
+  }
+   ```
+
+6. Change Password (need to be logged in)
+
+   ```dart
+   String result = await Accounts.changePassword(oldPassword, newPassword);
+   ```
+
+7. Forgot Password
 
    ```dart
    String result = await Accounts.forgotPassword(email);
    ```
 
-5. Reset Password
+8. Reset Password
 
    ```dart
-   String result = await Accounts.resetPassword(resetToken,newPassword);
+   String result = await Accounts.resetPassword(resetToken, newPassword);
    ```
 
-6. Logout
+9.  Logout
 
    ```dart
    await Meteor.logout();
    ```
 
-7. Get logged in userId
+11. Get logged in userId
 
    ```dart
    String userId = Meteor.currentUserId;
    ```
 
-8. Check if logged in
+11. Check if logged in
 
    ```dart
    bool isLoggedIn = Meteor.isLoggedIn();
    ```
 
-9. Get current user as map
+11. Get current user as map
 
    ```dart
    Map<String,dynamic> currentUser = await Meteor.userAsMap();
@@ -220,7 +352,7 @@ export const helloWorld = new ValidatedMethod({
     lastname: {type: String},
   }).validator(),
   run({ firstname,lastname }) {
-    const message = "hello "+firstname+" "+lastname;
+    const message = "hello "+ firstname + " " + lastname;
     console.log(message);
     return message;
   },
@@ -233,47 +365,9 @@ export const helloWorld = new ValidatedMethod({
 
 ```dart
 try{
-  var result = await Meteor.call('hello',[{'firstname':'Shivam','lastname':'Arora'}]);
+  var result = await Meteor.call('hello',[{'firstname':'Wendell','lastname':'Rocha'}]);
   print(result);
 }catch(error){
   print(error);
 }
 ```
-
-
-
-### Using Mongo Databases to manage data
-
-Meteorify uses the `mongo_dart` package internally to provide access to actual database.
-
-For more instructions regarding use of `mongo_dart` , visit their [mongo_dart guide](https://github.com/mongo-dart/mongo_dart).
-
-#### Get Meteor Database
-
-```dart
-import 'package:mongo_dart/mongo_dart.dart';
-
-Db db = await Meteor.getMeteorDatabase();
-```
-
-
-
-#### Get custom database
-
-```dart
-import 'package:mongo_dart/mongo_dart.dart';
-
-Db db = await Meteor.getCustomDatabase(dbUrl);
-await db.open();
-```
-
-
-
-#### Get collection
-
-```dart
-import 'package:mongo_dart/mongo_dart.dart';
-
-DbCollection collection = await db.collection('collectionName');
-```
-

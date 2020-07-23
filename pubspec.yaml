@@ -1,18 +1,18 @@
-name: meteorify
+name: enhanced_meteorify
 description: |
-  A dart package to interact with Meteor.
+  Carefully extended meteorify package to interact with the Meteor framework.
   Connect your web or flutter apps, written in Dart, with the Meteor framework.
-version: 1.0.6
-homepage: https://github.com/ShivamArora/meteorify
-repository: https://github.com/ShivamArora/meteorify
+version: 2.0.1
+homepage: https://github.com/wendellrocha/enhanced-meteorify
+repository: https://github.com/wendellrocha/enhanced-meteorify
 
 environment:
   sdk: '>=2.1.0 <3.0.0'
 
 dependencies:
-  ddp: ^0.0.13
-  mongo_dart: ^0.4.0
+  enhanced_ddp: ^1.0.11
+  shared_preferences: ^0.5.8
+  crypto: ^2.1.5
 
 dev_dependencies:
-  pedantic: ^1.0.0
-  test: ^1.0.0
+  pedantic: ^1.9.0

@@ -1,70 +1,91 @@
-## 1.0.6
+## 2.0.1
+- Update enhanced_ddp
 
-- Implemented dart analysis suggestions for better maintenance.
+## 2.0.1-dev.3
+- Update enhanced_ddp
 
-- Upgraded `mongo_dart` to version `0.4.0`.
-
+## 2.0.1-dev.2
+- Update enhanced_ddp
   
+## 2.0.1-dev.1
+- Update enhanced_ddp
+
+## 2.0.0
+ - 🚀
+ - Stable
+ - Remove mongo_dart package
+ - Drop support to getCustomDatabase and getMeteorDatabase
+ - Update shared_preferences to support flutter web
+
+## 2.0.0-dev.5
+ - Update enhanced_ddp package
+  
+## 2.0.0-dev.4
+ - Update enhanced_ddp package
+
+## 2.0.0-dev.3
+ - Update enhanced_ddp package
+  
+## 2.0.0-dev.2
+ - Update enhanced_ddp package
+
+## 2.0.0-dev.1
+ - 🚀
+ - Remove mongo_dart package
+ - Drop support to getCustomDatabase and getMeteorDatabase
+ - Update shared_preferences to support flutter web
+
+## 1.0.12
+  - Update enhanced_ddp package
+
+## 1.0.11
+  - Update enhanced_ddp package
+  - Add SubscribedCollection.removeUpdateListener
+  
+## 1.0.10
+  - Update enhanced_ddp package
+  
+## 1.0.9
+  - Sending encrypted password over the ddp
+
+## 1.0.8
+  - Save loginToken on shared preferences
+  - Auto reconnect on connection lost (enhanced_ddp)
+
+## 1.0.7
+  - Update enhanced_ddp package
+  
+## 1.0.6
+  - Update enhanced_ddp package
 
 ## 1.0.5
-
-- Now you can pass parameters to subscriptions. Use the following syntax:
-
-  ```dart
-  int subscriptionId = await Meteor.subscribe(subscriptionName, args=[arg1,arg2]);
-  ```
-
-- You can provide a custom db port for the meteor database. Use the following syntax:
-
-  ```dart
-  await Meteor.connect("ws://example.meteor.com/websocket", dbPort: 4001);
-  ```
-
-  
+  - Remove DDP package
+  - Add Enhanced_DDP package
 
 ## 1.0.4
-
-- Updated `mongo_dart` to provide Dart 2.5 compatibility.
-
-
-
+  - Update README
+  - Authentication with Apple* (needs sever-side code in JavaScript for use with Meteor)
+  
+  *Login with Apple currently only supports iOS 13+.
+  
 ## 1.0.3
-
-- Fixed the future already completed on status changed bug.
-
-- Now, you can set a listener for the connection events.
-
-  - ```dart
-    Meteor.connectionListener = (ConnectionStatus connectionStatus){
-      print(connectionStatus);
-    }
-    ```
-
-- You can now provide a custom interval for checking the status of the server by specifying `heartbeatInterval` within `Meteor.connect()`
-
-- You can now enable `autoLoginOnReconnect` to re-login the currently logged in user whenever the connection reconnects after a disconnection.
-
-
-
+  - Update README
+  - Authentication with Facebook (needs sever-side code in JavaScript for use with Meteor)
+ 
 ## 1.0.2
-
-- Provided a method to call serviceMethods exported from Meteor using `Meteor.call()`.
-- Provided documentation for most of the classes and methods.
-
-
+  - 🚀
 
 ## 1.0.1
-
-- Improve package health and fix analysis issues
-
+  - Connect and login with loginWithPassword example
 
 
 ## 1.0.0
 
-- Initial version, created by ShivamArora
+- Initial version
 - Features
   - Connect to Meteor server
   - Use Meteor Subscriptions
   - Meteor Authentication
+  - Authentication with Google oAuth (needs server-side code in JavaScript for use with Meteor)
   - Call Custom Methods on Meteor
   - Access underlying databases

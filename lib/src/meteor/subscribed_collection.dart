@@ -1,9 +1,8 @@
-import 'package:ddp/ddp.dart';
+import 'package:enhanced_ddp/enhanced_ddp.dart';
 
 /// Provides useful methods to read data from a collection on the frontend.
 ///
 /// [SubscribedCollection] supports only read functionality useful in case of getting only the data subscribed by user and not any other data.
-/// To access other methods use `Meteor.getCustomDatabase(dbUrl)` and use the methods of the `Db` class.
 class SubscribedCollection {
   /// The internal collection instance.
   final Collection _collection;
@@ -26,6 +25,10 @@ class SubscribedCollection {
 
   void addUpdateListener(UpdateListener listener) {
     _collection.addUpdateListener(listener);
+  }
+
+  void removeUpdateListeners() {
+    _collection.removeUpdateListeners();
   }
 
   /// Returns specific objects from a subscribed collection using a set of [selectors].

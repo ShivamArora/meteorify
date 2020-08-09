@@ -1,3 +1,4 @@
+// ignore_for_file: omit_local_variable_types
 import 'package:ddp/ddp.dart';
 
 /// Provides useful methods to read data from a collection on the frontend.

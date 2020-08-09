@@ -1,3 +1,4 @@
+// ignore_for_file: omit_local_variable_types
 import 'dart:async';
 
 import 'package:ddp/ddp.dart';
@@ -8,7 +9,12 @@ import 'subscribed_collection.dart';
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
 /// A listener for the current connection status.
-typedef MeteorConnectionListener = void Function(ConnectionStatus connectionStatus);
+typedef MeteorConnectionListener = void Function(
+    ConnectionStatus connectionStatus);
+
+/// A regex for testing the email pattern
+const String email_pattern =
+    r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -145,16 +151,22 @@ class Meteor {
     return _currentUserId != null;
   }
 
-  /// Login using the user's [email] and [password].
+  /// Login using the user's [emailOrUsername] and [password].
   ///
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithPassword(String email, String password) async {
+  static Future<String> loginWithPassword(
+      String emailOrUsername, String password) async {
     Completer completer = Completer<String>();
     if (isConnected) {
+      RegExp emailRegex = RegExp(email_pattern);
+
       var result = await _client.call('login', [
         {
           'password': password,
-          'user': {'email': email}
+          'user': {
+            emailRegex.hasMatch(emailOrUsername) ? 'email' : 'username':
+                emailOrUsername
+          }
         }
       ]);
       print(result.reply);
@@ -262,12 +274,14 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName,{List<dynamic> args = const []}) async {
+  static Future<String> subscribe(String subscriptionName,
+      {List<dynamic> args = const []}) async {
     Completer<String> completer = Completer<String>();
     Call result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains('nosub')) {
       print('Error: ${result.error.toString()}');
-      completer.completeError('Subscription $subscriptionName not found with given set of parameters');
+      completer.completeError(
+          'Subscription $subscriptionName not found with given set of parameters');
     } else {
       completer.complete(result.id);
     }

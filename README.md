@@ -26,7 +26,7 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  meteorify: ^1.0.6
+  meteorify: ^1.0.7
 ```
 
 
@@ -155,7 +155,7 @@ var userId = await Accounts.createUser(username,email,password,profileOptions);
 1. Login with password
 
    ```dart
-   String loginToken = await Meteor.loginWithPassword(email,password);
+   String loginToken = await Meteor.loginWithPassword(emailOrUsername,password);
    ```
 
 2. Login with token

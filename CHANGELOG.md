@@ -1,3 +1,7 @@
+## 1.0.7
+
+- Login with username by using the existing `loginWithPassword` method matching the official Meteor style to login with email or username using a single function.
+
 ## 1.0.6
 
 - Implemented dart analysis suggestions for better maintenance.

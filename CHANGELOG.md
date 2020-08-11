@@ -1,3 +1,6 @@
+## 2.1.2
+ - Fix _notifyLogin return
+
 ## 2.1.1
  - Fix _notifyLogin return
 

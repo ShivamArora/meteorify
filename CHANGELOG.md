@@ -1,3 +1,6 @@
+## 2.1.3
+ - Surround _loginWithToken with try...catch
+
 ## 2.1.2
  - Fix _notifyLogin return
 

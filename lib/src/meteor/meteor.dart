@@ -87,10 +87,18 @@ class Meteor {
         isConnected = true;
         print('token: $_token');
         if (autoLoginOnReconnect && _token != null && _token.isNotEmpty) {
-          loginWithToken(_token);
+          try {
+            loginWithToken(_token);
+          } catch (err) {
+            print(err.errorMessage);
+          }
         } else if (autoLoginOnReconnect && _sessionToken != null) {
-          print('_sessionToken: $_token');
-          loginWithToken(_sessionToken);
+         try {
+            print('_sessionToken: $_token');
+            loginWithToken(_sessionToken);
+         } catch (err) {
+           print(err.errorMessage);
+         }
         }
         _notifyConnected();
       } else if (status == ConnectStatus.disconnected) {

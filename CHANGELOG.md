@@ -1,3 +1,6 @@
+## 2.1.1
+ - Fix _notifyLogin return
+
 ## 2.1.0
 - Update DDP Package
 - Throw Meteor erros

@@ -194,9 +194,7 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } else {
-      return null;
-    }
+    } 
   }
 
   /// Login or register a new user with de Google oAuth API
@@ -223,8 +221,6 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } else {
-      return null;
     }
   }
 
@@ -249,9 +245,7 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } else {
-      return null;
-    }
+    } 
   }
 
   ///Login or register a new user with the Apple Login API
@@ -281,16 +275,13 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } else {
-      return null;
-    }
+    } 
   }
 
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithToken(String loginToken) async {
-    try {
       if (isConnected) {
         var result = await _client.call('login', [
           {'resume': loginToken}
@@ -304,10 +295,6 @@ class Meteor {
       } else {
         return null;
       }
-    } catch (err) {
-      MeteorError.parse(err);
-      return null;
-    }
   }
 
   /// Used internally to notify the future about success/failure of login process.
@@ -321,7 +308,7 @@ class Meteor {
       var _token = await Utils.setString('token', token);
       print('loginToken: $_token');
       _sessionToken = token;
-      return _token;
+      return token;
     } else {
       return null;
     }

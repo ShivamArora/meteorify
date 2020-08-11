@@ -9,6 +9,28 @@ import 'subscribed_collection.dart';
 /// An enum for describing the [ConnectionStatus].
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
+/// An class to parse Meteor Errors
+class MeteorError extends Error {
+  String error;
+  String errorType;
+  String message;
+  String reason;
+
+  MeteorError.parse(Map<String, dynamic> err) {
+    error = err['error']?.toString();
+    errorType = err['errorType']?.toString();
+    message = err['message']?.toString();
+    reason = err['reason']?.toString();
+  }
+
+  String get errorMessage => reason;
+
+  @override
+  String toString() {
+    return 'error: $error, errorType: $errorType, message: $message, reason: $reason';
+  }
+}
+
 /// A listener for the current connection status.
 typedef MeteorConnectionListener = void Function(
     ConnectionStatus connectionStatus);
@@ -86,7 +108,7 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in a future.
   static Future<ConnectionStatus> _connectToServer(
       String url, Duration heartbeatInterval) async {
-    Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
+    var completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
     _client = DdpClient('meteor', _connectionUrl, 'meteor');
@@ -150,7 +172,6 @@ class Meteor {
   ///
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithPassword(String user, String password) async {
-    Completer completer = Completer<String>();
     if (isConnected) {
       var query;
       if (!user.contains('@')) {
@@ -167,12 +188,15 @@ class Meteor {
           },
         }
       ]);
-      print(result.reply);
-      _notifyLoginResult(result, completer);
-      return completer.future;
+      if (result.error == null) {
+        print(result.reply);
+        return await _notifyLoginResult(result);
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    } else {
+      return null;
     }
-    completer.completeError('Not connected to server');
-    return completer.future;
   }
 
   /// Login or register a new user with de Google oAuth API
@@ -183,8 +207,7 @@ class Meteor {
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithGoogle(
       String email, String userId, Object authHeaders) async {
-    final bool googleLoginPlugin = true;
-    Completer completer = Completer<String>();
+    final googleLoginPlugin = true;
     if (isConnected) {
       var result = await _client.call('login', [
         {
@@ -194,12 +217,15 @@ class Meteor {
           'googleLoginPlugin': googleLoginPlugin
         }
       ]);
-      print(result.reply);
-      _notifyLoginResult(result, completer);
-      return completer.future;
+      if (result.error == null) {
+        print(result.reply);
+        return await _notifyLoginResult(result);
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    } else {
+      return null;
     }
-    completer.completeError('Not connected to server');
-    return completer.future;
   }
 
   ///Login or register a new user with the Facebook Login API
@@ -208,8 +234,7 @@ class Meteor {
   /// [token] the token from Facebook API Login for server side validation
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithFacebook(String userId, String token) async {
-    final bool facebookLoginPlugin = true;
-    Completer completer = Completer<String>();
+    final facebookLoginPlugin = true;
     if (isConnected) {
       var result = await _client.call('login', [
         {
@@ -218,12 +243,15 @@ class Meteor {
           'facebookLoginPlugin': facebookLoginPlugin
         }
       ]);
-      print(result.reply);
-      _notifyLoginResult(result, completer);
-      return completer.future;
+      if (result.error == null) {
+        print(result.reply);
+        return await _notifyLoginResult(result);
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    } else {
+      return null;
     }
-    completer.completeError('Not connected to server');
-    return completer.future;
   }
 
   ///Login or register a new user with the Apple Login API
@@ -235,8 +263,7 @@ class Meteor {
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithApple(
       String userId, List<int> jwt, String givenName, String lastName) async {
-    final bool appleLoginPlugin = true;
-    Completer completer = Completer<String>();
+    final appleLoginPlugin = true;
     if (isConnected) {
       var token = Utils.parseJwt(utf8.decode(jwt));
       var result = await _client.call('login', [
@@ -248,47 +275,55 @@ class Meteor {
           'appleLoginPlugin': appleLoginPlugin
         }
       ]);
-      print(result.reply);
-      _notifyLoginResult(result, completer);
-      return completer.future;
+      if (result.error == null) {
+        print(result.reply);
+        return await _notifyLoginResult(result);
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    } else {
+      return null;
     }
-    completer.completeError('Not connected to server');
-    return completer.future;
   }
 
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithToken(String loginToken) async {
-    Completer completer = Completer<String>();
-    if (isConnected) {
-      var result = await _client.call('login', [
-        {'resume': loginToken}
-      ]);
-      print(result.reply);
-      _notifyLoginResult(result, completer);
-      return completer.future;
+    try {
+      if (isConnected) {
+        var result = await _client.call('login', [
+          {'resume': loginToken}
+        ]);
+        if (result.error == null) {
+          print(result.reply);
+          return await _notifyLoginResult(result);
+        } else {
+          throw MeteorError.parse(result.reply);
+        }
+      } else {
+        return null;
+      }
+    } catch (err) {
+      MeteorError.parse(err);
+      return null;
     }
-    completer.completeError('Not connected to server');
-    return completer.future;
   }
 
   /// Used internally to notify the future about success/failure of login process.
-  static void _notifyLoginResult(Call result, Completer completer) async {
+  static Future<String> _notifyLoginResult(Call result) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
     print('login result: ${result.reply}');
     if (userId != null) {
       _currentUserId = userId;
       print('Logged in user $_currentUserId');
-      if (completer != null) {
-        var _token = await Utils.setString('token', token);
-        print('loginToken: $_token');
-        _sessionToken = token;
-        completer.complete(token);
-      }
+      var _token = await Utils.setString('token', token);
+      print('loginToken: $_token');
+      _sessionToken = token;
+      return _token;
     } else {
-      _notifyError(completer, result);
+      return null;
     }
   }
 
@@ -303,11 +338,6 @@ class Meteor {
     }
   }
 
-  /// Used internally to notify a future about the error returned from a ddp call.
-  static void _notifyError(Completer completer, Call result) {
-    completer.completeError(result.reply['reason']);
-  }
-
 /*
  * Methods associated with subscriptions
  */
@@ -317,24 +347,22 @@ class Meteor {
   /// Returns the `subscriptionId` as a [String].
   static Future<String> subscribe(String subscriptionName,
       {List<dynamic> args = const []}) async {
-    Completer<String> completer = Completer<String>();
-    Call result = await _client.sub(subscriptionName, args);
+    var result = await _client.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains('nosub')) {
-      print('Error: ${result.error.toString()}');
-      completer.completeError(
-          'Subscription $subscriptionName not found with given set of parameters');
+      throw MeteorError.parse(result.reply);
     } else {
-      completer.complete(result.id);
+      return await result.id;
     }
-    return completer.future;
   }
 
   /// Unsubscribe from a subscription using the [subscriptionId] returned by [subscribe].
   static Future<String> unsubscribe(String subscriptionId) async {
-    Completer<String> completer = Completer<String>();
-    Call result = await _client.unSub(subscriptionId);
-    completer.complete(result.id);
-    return completer.future;
+    var result = await _client.unSub(subscriptionId);
+    if (result.error == null) {
+      return await result.id;
+    } else {
+      throw MeteorError.parse(result.reply);
+    }
   }
 
 /*
@@ -344,12 +372,14 @@ class Meteor {
   /// Returns a [SubscribedCollection] using the [collectionName].
   ///
   /// [SubscribedCollection] supports only read operations.
-  static Future<SubscribedCollection> collection(String collectionName) {
-    Completer<SubscribedCollection> completer =
-        Completer<SubscribedCollection>();
-    Collection collection = _client.collectionByName(collectionName);
-    completer.complete(SubscribedCollection(collection, collectionName));
-    return completer.future;
+  static Future<SubscribedCollection> collection(String collectionName) async {
+    try {
+      var collection = _client.collectionByName(collectionName);
+      return await SubscribedCollection(collection, collectionName);
+    } catch (err) {
+      MeteorError.parse(err);
+      return null;
+    }
   }
 
 /*
@@ -361,13 +391,11 @@ class Meteor {
   /// Returns the value returned by the service method or an error using a [Future].
   static Future<dynamic> call(
       String methodName, List<dynamic> arguments) async {
-    Completer<dynamic> completer = Completer<dynamic>();
     var result = await _client.call(methodName, arguments);
-    if (result.error != null) {
-      completer.completeError(result.error);
+    if (result.error == null) {
+      return await result.reply;
     } else {
-      completer.complete(result.reply);
+      throw MeteorError.parse(result.reply);
     }
-    return completer.future;
   }
 }

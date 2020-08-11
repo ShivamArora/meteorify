@@ -1,3 +1,37 @@
+## 2.1.0
+- Update DDP Package
+- Throw Meteor erros
+
+## 2.1.0-dev.10
+- Update DDP Package
+
+## 2.1.0-dev.9
+- Update DDP Package
+
+## 2.1.0-dev.8
+- Throw Meteor erros
+
+## 2.1.0-dev.7
+- Throw Meteor erros
+
+## 2.1.0-dev.6
+- Throw Meteor erros
+
+## 2.1.0-dev.5
+- Throw Meteor erros
+
+## 2.1.0-dev.4
+- Throw Meteor erros
+
+## 2.1.0-dev.3
+- Throw Meteor erros
+
+## 2.1.0-dev.2
+- Throw Meteor erros
+
+## 2.1.0-dev.1
+- Throw Meteor erros
+
 ## 2.0.1
 - Update enhanced_ddp
 

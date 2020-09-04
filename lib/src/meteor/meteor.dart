@@ -77,7 +77,7 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(seconds: 15)}) async {
+      Duration heartbeatInterval = const Duration(seconds: 10)}) async {
     var connectionStatus = await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
@@ -93,12 +93,12 @@ class Meteor {
             print(err.errorMessage);
           }
         } else if (autoLoginOnReconnect && _sessionToken != null) {
-         try {
+          try {
             print('_sessionToken: $_token');
             loginWithToken(_sessionToken);
-         } catch (err) {
-           print(err.errorMessage);
-         }
+          } catch (err) {
+            print(err.errorMessage);
+          }
         }
         _notifyConnected();
       } else if (status == ConnectStatus.disconnected) {
@@ -202,7 +202,8 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } 
+    }
+    return null;
   }
 
   /// Login or register a new user with de Google oAuth API
@@ -230,6 +231,7 @@ class Meteor {
         throw MeteorError.parse(result.reply);
       }
     }
+    return null;
   }
 
   ///Login or register a new user with the Facebook Login API
@@ -253,7 +255,8 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } 
+    }
+    return null;
   }
 
   ///Login or register a new user with the Apple Login API
@@ -283,26 +286,26 @@ class Meteor {
       } else {
         throw MeteorError.parse(result.reply);
       }
-    } 
+    }
+    return null;
   }
 
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithToken(String loginToken) async {
-      if (isConnected) {
-        var result = await _client.call('login', [
-          {'resume': loginToken}
-        ]);
-        if (result.error == null) {
-          print(result.reply);
-          return await _notifyLoginResult(result);
-        } else {
-          throw MeteorError.parse(result.reply);
-        }
+    if (isConnected) {
+      var result = await _client.call('login', [
+        {'resume': loginToken}
+      ]);
+      if (result.error == null) {
+        print(result.reply);
+        return await _notifyLoginResult(result);
       } else {
-        return null;
+        throw MeteorError.parse(result.reply);
       }
+    }
+    return null;
   }
 
   /// Used internally to notify the future about success/failure of login process.

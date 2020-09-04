@@ -1,3 +1,8 @@
+## 2.1.4
+ - Change default heartbeatInterval to 10s
+ - Update README
+ - Update enhanced_ddp package 
+
 ## 2.1.3
  - Surround _loginWithToken with try...catch
 

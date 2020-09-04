@@ -33,35 +33,13 @@ dependencies:
 
 ### Capturing the result of operations
 
-You can use either the `then-catchError` or `await` syntax to capture the result of operations and handle errors.
+You can use the `await` syntax to capture the result of operations and handle errors.
 
 **I'll be using the `await` syntax in this documentation to keep it short and straight.**
-You can use either `catchError` on `Future` object or `try/catch` syntax to catch errors.
-
-
 
 ### Connection Operations
 
 #### Connecting with Meteor
-
-Using `then-catchError`:
-
-```dart
-import 'package:meteorify/meteorify.dart';
-
-main() async{
-  Meteor.connect('ws://example.meteor.com/websocket')
-      .then((status){
-          // Do something after connection is successful
-      })
-      .catchError((error){
-          print(error);
-          //Handle error
-      });
-}
-```
-
-Using `await`:
 
 ```dart
 import 'package:meteorify/meteorify.dart';
@@ -152,16 +130,28 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
 
    ```dart
    // Login with email
-   String loginToken = await Meteor.loginWithPassword(email, password);
+   try {
+      String loginToken = await Meteor.loginWithPassword(email, password);
+   } catch(error) {
+      print(error);
+   }
 
    // Login with username
-   String loginToken = await Meteor.loginWithPassword(username, password);
+   try {
+      String loginToken = await Meteor.loginWithPassword(username, password);
+   } catch(error) {
+      print(error);
+   }
    ```
 
 2. Login with token
 
    ```dart
-   String token = await Meteor.loginWithToken(loginToken);
+   try {
+      String token = await Meteor.loginWithToken(loginToken);
+   } catch(error) {
+      print(error);
+   }
    ```
 
 3. Login with Google
@@ -170,7 +160,11 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    // `email` to register with. Must be fetched from the Google oAuth API
    // The unique Google `userId`. Must be fetched from the Google oAuth API
    // `authHeaders` from Google oAuth API for server side validation
-   String token = await Meteor.loginWithGoogle(email, userId, authHeaders)
+   try {
+      String token = await Meteor.loginWithGoogle(email, userId, authHeaders)
+   } catch(error) {
+      print(error);
+   }
    ```
 
    Install google_sing_in package
@@ -207,7 +201,11 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    ```dart
    // [userId] the unique Facebook userId. Must be fetched from the Facebook Login API
    // [token] the token from Facebook API Login for server side validation
-   String token = await Meteor.loginWithFacebook(userId, token)
+   try {
+      String token = await Meteor.loginWithFacebook(userId, token)
+   } catch(error) {
+      print(error);
+   }
    ```
 
    Install flutter_facebook_login package
@@ -250,7 +248,11 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
    // [jwt] the jwt from Apple API Login to get user's e-mail
    // [givenName] user's given Name. Must be fetched from the Apple Login API
    // [lastName] user's last Name. Must be fetched from the Apple Login API
-   String token = await Meteor.loginWithApple(userId, jwt, givenName, lastName)
+   try {
+      String token = await Meteor.loginWithApple(userId, jwt, givenName, lastName)
+   } catch(error) {
+      print(error);
+   }
    ```
 
 

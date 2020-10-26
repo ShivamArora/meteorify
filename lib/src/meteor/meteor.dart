@@ -77,7 +77,7 @@ class Meteor {
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(seconds: 10)}) async {
+      Duration heartbeatInterval = const Duration(seconds: 25)}) async {
     var connectionStatus = await _connectToServer(url, heartbeatInterval);
     _client.removeStatusListener(_statusListener);
 
@@ -85,16 +85,16 @@ class Meteor {
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        print('token: $_token');
         if (autoLoginOnReconnect && _token != null && _token.isNotEmpty) {
           try {
             loginWithToken(_token);
           } catch (err) {
             print(err.errorMessage);
           }
-        } else if (autoLoginOnReconnect && _sessionToken != null) {
+        } else if (autoLoginOnReconnect &&
+            _sessionToken != null &&
+            _sessionToken.isNotEmpty) {
           try {
-            print('_sessionToken: $_token');
             loginWithToken(_sessionToken);
           } catch (err) {
             print(err.errorMessage);

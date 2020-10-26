@@ -1,3 +1,8 @@
+## 2.1.5
+ - Change heartbeat interval to 25s
+ - Check if _seasonToken is null or empty
+ - Update enhanced_ddp package
+
 ## 2.1.4
  - Change default heartbeatInterval to 10s
  - Update README

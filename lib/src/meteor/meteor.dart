@@ -67,9 +67,6 @@ class Meteor {
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
 
-  /// The session token used to store the currently logged in user's login token.
-  static String _sessionToken;
-
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
@@ -85,17 +82,11 @@ class Meteor {
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        if (autoLoginOnReconnect && _token != null && _token.isNotEmpty) {
+        if (autoLoginOnReconnect &&
+            Utils.isNullorEmpty(_currentUserId) &&
+            !Utils.isNullorEmpty(_token)) {
           try {
             loginWithToken(_token);
-          } catch (err) {
-            print(err.errorMessage);
-          }
-        } else if (autoLoginOnReconnect &&
-            _sessionToken != null &&
-            _sessionToken.isNotEmpty) {
-          try {
-            loginWithToken(_sessionToken);
           } catch (err) {
             print(err.errorMessage);
           }
@@ -103,6 +94,7 @@ class Meteor {
         _notifyConnected();
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
+        _currentUserId = null;
         _notifyDisconnected();
       }
     };
@@ -132,6 +124,7 @@ class Meteor {
         }
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
+        _currentUserId = null;
         _notifyDisconnected();
         if (!completer.isCompleted) {
           completer.completeError(ConnectionStatus.DISCONNECTED);
@@ -318,7 +311,6 @@ class Meteor {
       print('Logged in user $_currentUserId');
       var _token = await Utils.setString('token', token);
       print('loginToken: $_token');
-      _sessionToken = token;
       return token;
     } else {
       return null;
@@ -329,9 +321,7 @@ class Meteor {
   static void logout() async {
     if (isConnected) {
       var result = await _client.call('logout', []);
-      await Utils.remove('loginToken');
-      _sessionToken = null;
-
+      await Utils.remove('token');
       print(result.reply);
     }
   }

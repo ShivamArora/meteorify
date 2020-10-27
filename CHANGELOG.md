@@ -1,3 +1,29 @@
+## 2.1.7
+ - Release
+
+## 2.1.7-dev.2
+ - Clear token on logout
+
+## 2.1.7-dev.1
+ - Clear token on logout
+
+## 2.1.6
+ - Release
+
+## 2.1.6-dev.4
+ - On disconnect set _currentUserId to null
+
+## 2.1.6-dev.3
+ - On disconnect set _currentUserId to null
+
+## 2.1.6-dev.2
+ - Remove _seasonToken
+ - Check if _currentUserId isNullorEmpyt and shared preferences _token exists on autoLoginReconnect
+
+## 2.1.6-dev.1
+ - Remove _seasonToken
+ - Check if _currentUserId and shared preferences _token exists on autoLoginReconnect
+
 ## 2.1.5
  - Change heartbeat interval to 25s
  - Check if _seasonToken is null or empty

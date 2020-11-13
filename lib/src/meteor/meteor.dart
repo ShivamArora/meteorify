@@ -31,6 +31,20 @@ class MeteorError extends Error {
   }
 }
 
+/// An enum for describing the [SubscriptionStatus].
+enum SubscriptionStatus { ready, waiting }
+
+/// An class to subscriptions results
+class SubscriptionResult {
+  String subName;
+  SubscriptionStatus status;
+
+  @override
+  String toString() {
+    return 'Subscription: $subName, Status: $status';
+  }
+}
+
 /// A listener for the current connection status.
 typedef MeteorConnectionListener = void Function(
     ConnectionStatus connectionStatus);
@@ -66,6 +80,11 @@ class Meteor {
 
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
+
+  static SubscriptionListener _subscriptionListener;
+
+  static final StreamController _subscriptionStatusController =
+      StreamController<SubscriptionResult>();
 
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
@@ -322,6 +341,7 @@ class Meteor {
     if (isConnected) {
       var result = await _client.call('logout', []);
       await Utils.remove('token');
+      _currentUserId = null;
       print(result.reply);
     }
   }
@@ -336,11 +356,33 @@ class Meteor {
   static Future<String> subscribe(String subscriptionName,
       {List<dynamic> args = const []}) async {
     var result = await _client.sub(subscriptionName, args);
+    var subResult = SubscriptionResult();
+
+    subResult.subName = result.serviceMethod;
+    subResult.status = SubscriptionStatus.waiting;
+
+    _subscriptionListener = (name, status) {
+      if (result.serviceMethod == subscriptionName && result.error == null) {
+        subResult.subName = result.serviceMethod;
+        subResult.status = SubscriptionStatus.ready;
+        _subscriptionStatusController.sink.add(subResult);
+      }
+    };
+    _client.subscriptionReady(_subscriptionListener);
+    _subscriptionStatusController.sink.add(subResult);
+    print(result.reply);
     if (result.error != null && result.error.toString().contains('nosub')) {
       throw MeteorError.parse(result.reply);
     } else {
       return await result.id;
     }
+  }
+
+  /// Notify when subscriptions is ready
+  ///
+  /// Returns `Stream`
+  static Stream<SubscriptionResult> subscriptionsReady() {
+    return _subscriptionStatusController.stream;
   }
 
   /// Unsubscribe from a subscription using the [subscriptionId] returned by [subscribe].

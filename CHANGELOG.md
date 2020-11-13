@@ -1,28 +1,17 @@
+## 2.3.1
+ - On logout remove _currentUserId
+
+## 2.3.0
+ - `Meteor.subscriptionsReady()` notify about subscriptions
+
+## 2.2.0
+ - Notify on subscriptions ready `Meteor.subscriptionsReady(['subscriptionName', ... 'subscriptionName'])`
+
 ## 2.1.7
  - Release
 
-## 2.1.7-dev.2
- - Clear token on logout
-
-## 2.1.7-dev.1
- - Clear token on logout
-
 ## 2.1.6
  - Release
-
-## 2.1.6-dev.4
- - On disconnect set _currentUserId to null
-
-## 2.1.6-dev.3
- - On disconnect set _currentUserId to null
-
-## 2.1.6-dev.2
- - Remove _seasonToken
- - Check if _currentUserId isNullorEmpyt and shared preferences _token exists on autoLoginReconnect
-
-## 2.1.6-dev.1
- - Remove _seasonToken
- - Check if _currentUserId and shared preferences _token exists on autoLoginReconnect
 
 ## 2.1.5
  - Change heartbeat interval to 25s
@@ -47,69 +36,12 @@
 - Update DDP Package
 - Throw Meteor erros
 
-## 2.1.0-dev.10
-- Update DDP Package
-
-## 2.1.0-dev.9
-- Update DDP Package
-
-## 2.1.0-dev.8
-- Throw Meteor erros
-
-## 2.1.0-dev.7
-- Throw Meteor erros
-
-## 2.1.0-dev.6
-- Throw Meteor erros
-
-## 2.1.0-dev.5
-- Throw Meteor erros
-
-## 2.1.0-dev.4
-- Throw Meteor erros
-
-## 2.1.0-dev.3
-- Throw Meteor erros
-
-## 2.1.0-dev.2
-- Throw Meteor erros
-
-## 2.1.0-dev.1
-- Throw Meteor erros
-
 ## 2.0.1
-- Update enhanced_ddp
-
-## 2.0.1-dev.3
-- Update enhanced_ddp
-
-## 2.0.1-dev.2
-- Update enhanced_ddp
-  
-## 2.0.1-dev.1
 - Update enhanced_ddp
 
 ## 2.0.0
  - 🚀
  - Stable
- - Remove mongo_dart package
- - Drop support to getCustomDatabase and getMeteorDatabase
- - Update shared_preferences to support flutter web
-
-## 2.0.0-dev.5
- - Update enhanced_ddp package
-  
-## 2.0.0-dev.4
- - Update enhanced_ddp package
-
-## 2.0.0-dev.3
- - Update enhanced_ddp package
-  
-## 2.0.0-dev.2
- - Update enhanced_ddp package
-
-## 2.0.0-dev.1
- - 🚀
  - Remove mongo_dart package
  - Drop support to getCustomDatabase and getMeteorDatabase
  - Update shared_preferences to support flutter web
@@ -156,7 +88,6 @@
 
 ## 1.0.1
   - Connect and login with loginWithPassword example
-
 
 ## 1.0.0
 

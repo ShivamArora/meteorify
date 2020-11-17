@@ -1,3 +1,6 @@
+## 2.3.2
+ - Update enhanced_ddp package
+
 ## 2.3.1
  - On logout remove _currentUserId
 

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
 import 'package:enhanced_ddp/enhanced_ddp.dart';
@@ -101,19 +102,16 @@ class Meteor {
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
-        if (autoLoginOnReconnect &&
-            Utils.isNullorEmpty(_currentUserId) &&
-            !Utils.isNullorEmpty(_token)) {
+        if (autoLoginOnReconnect && !Utils.isNullorEmpty(_token)) {
           try {
             loginWithToken(_token);
+            _notifyConnected();
           } catch (err) {
             print(err.errorMessage);
           }
         }
-        _notifyConnected();
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
-        _currentUserId = null;
         _notifyDisconnected();
       }
     };
@@ -143,7 +141,6 @@ class Meteor {
         }
       } else if (status == ConnectStatus.disconnected) {
         isConnected = false;
-        _currentUserId = null;
         _notifyDisconnected();
         if (!completer.isCompleted) {
           completer.completeError(ConnectionStatus.DISCONNECTED);
@@ -307,6 +304,7 @@ class Meteor {
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithToken(String loginToken) async {
     if (isConnected) {
+      log('token: $loginToken');
       var result = await _client.call('login', [
         {'resume': loginToken}
       ]);
@@ -324,12 +322,12 @@ class Meteor {
   static Future<String> _notifyLoginResult(Call result) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
-    print('login result: ${result.reply}');
+    log('login result: ${result.reply}');
     if (userId != null) {
       _currentUserId = userId;
-      print('Logged in user $_currentUserId');
+      log('Logged in user $_currentUserId');
       var _token = await Utils.setString('token', token);
-      print('loginToken: $_token');
+      log('loginToken: $_token');
       return token;
     } else {
       return null;

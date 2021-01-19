@@ -1,3 +1,6 @@
+## 2.3.4
+ - Update enhanced_ddp package
+
 ## 2.3.3+6
  - loginWithToken
 

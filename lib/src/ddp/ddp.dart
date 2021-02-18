@@ -1,8 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:enhanced_meteorify/src/ddp/collection.dart';
+import 'package:enhanced_meteorify/src/ddp/stream.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'collection.dart';
+import 'log.dart';
+import 'message.dart';
 
 enum ConnectStatus { disconnected, dialing, connecting, connected }
 
@@ -119,6 +123,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   bool _wasPingSent;
 
   String _sessionId;
+  // ignore: unused_field
   String _serverId;
   String _version;
   String _url;
@@ -126,6 +131,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   WebSocketChannel _socket;
   Reader _reader;
+  // ignore: close_sinks
   Writer _writer;
   IdManager _idManager;
 
@@ -151,7 +157,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._url = _url;
     this._serverId = '';
     this._version = '1';
-    this._support = ['1'];
+    this._support = ["1", "pre2", "pre1"];
     this._waitingForConnect = false;
     this._wasPingSent = false;
     this._idManager = IdManager();
@@ -187,21 +193,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._statusListeners.remove(listener);
   }
 
-  static void log(String msg, String direction) {
-    if (direction == '->')
-      print('\x1B[34m[DDP] -> :: $msg\x1B[0m');
-    else
-      print('\x1B[34m[DDP] <- :: $msg\x1B[0m');
-  }
-
-  void printWarning(String text) {
-    print('\x1B[33m[DDP] :: $text\x1B[0m');
-  }
-
-  void printError(String text) {
-    print('\x1B[31m[DDP] :: $text\x1B[0m');
-  }
-
   String get session => _sessionId;
 
   String get version => _version;
@@ -222,7 +213,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   void _start(WebSocketChannel ws, String msg) {
     this._status(ConnectStatus.connecting);
 
-    print(_connectMsg());
     this._initMessageHandlers();
     this._socket = ws;
 
@@ -230,53 +220,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._writer = Writer(ws.sink);
     this._inboxManager();
     this._send(msg);
-  }
-
-  String _connectMsg() {
-    if (this._sessionId != null)
-      return json.encode({
-        "msg": "connect",
-        "version": this._version,
-        "support": this._support,
-        "session": this._sessionId
-      });
-    else
-      return json.encode({
-        "msg": "connect",
-        "version": "${this._version}",
-        "support": ["1", "pre2", "pre1"],
-      });
-  }
-
-  String _reconnectMsg() {
-    return json.encode({
-      'msg': 'connect',
-      'version': this._version,
-      'support': this._support,
-      'session': this._sessionId
-    });
-  }
-
-  String _subMsg(String id, String subName, List<dynamic> args) {
-    return json
-        .encode({'msg': 'sub', 'name': subName, 'params': args, 'id': id});
-  }
-
-  String _methodMsg(String id, methodName, List<dynamic> args) {
-    return json.encode(
-        {'msg': 'method', 'method': methodName, 'params': args, 'id': id});
-  }
-
-  String _unsubMsg(String id) {
-    return json.encode({'msg': 'unsub', 'id': id});
-  }
-
-  String _pingMsg() {
-    return json.encode({'msg': 'ping'});
-  }
-
-  String _pongMsg() {
-    return json.encode({'msg': 'pong'});
   }
 
   void connect() async {
@@ -288,11 +231,12 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       this._status(ConnectStatus.dialing);
       print(this._url);
       final ws = WebSocketChannel.connect(Uri.parse(this._url));
-      this._start(ws, _connectMsg());
+      this._start(
+          ws, Message.connect(this._sessionId, this._version, this._support));
       _waitingForConnect = false;
       _reconnectListenersHolder.onConnected();
     } catch (err) {
-      printError('DDP::ERROR::ON CONNECT: $err');
+      Log.error('DDP::ERROR::ON CONNECT: $err');
       this._reconnectLater();
     }
   }
@@ -312,17 +256,16 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       this.close();
       this._status(ConnectStatus.dialing);
       final connection = WebSocketChannel.connect(Uri.parse(this._url));
-      this._start(connection, _reconnectMsg());
+      this._start(connection,
+          Message.reconnect(this._sessionId, this._version, this._support));
       this._calls.values.forEach(
-          (call) => _methodMsg(call.id, call.serviceMethod, call.args));
-      this
-          ._subs
-          .values
-          .forEach((call) => _subMsg(call.id, call.serviceMethod, call.args));
+          (call) => Message.method(call.id, call.serviceMethod, call.args));
+      this._subs.values.forEach(
+          (call) => Message.sub(call.id, call.serviceMethod, call.args));
       _waitingForConnect = false;
       _reconnectListenersHolder.onConnected();
     } catch (err) {
-      printError('DDP::ERROR::ON RECONNECT: $err');
+      Log.error('DDP::ERROR::ON RECONNECT: $err');
       this.close();
       this._reconnectLater();
     }
@@ -352,11 +295,11 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   void ping() {
     if (this._socket != null) {
-      this._send(_pingMsg());
+      this._send(Message.ping());
       Future.delayed(this.heartbeatInterval, () {
         if (this._wasPingSent) {
-          printError('Disconnected due to not received pong');
-          printError('heartbeat interval is ${this.heartbeatInterval}');
+          Log.error('Disconnected due to not received pong');
+          Log.error('heartbeat interval is ${this.heartbeatInterval}');
           this._reconnectLater();
         }
       });
@@ -365,7 +308,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   void pong() {
     if (this._socket != null) {
-      this._send(_pongMsg());
+      this._send(Message.pong());
     }
   }
 
@@ -384,15 +327,12 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._messageHandlers['ping'] = (msg) {
       if (!this._wasPingSent) {
         this._wasPingSent = true;
-        this._send(_pongMsg());
+        this.pong();
       }
     };
 
     this._messageHandlers['pong'] = (msg) {
-      Future.delayed(this.heartbeatTimeOut, () {
-        this._wasPingSent = false;
-        this._send(_pingMsg());
-      });
+      this._wasPingSent = false;
     };
 
     this._messageHandlers['nosub'] = (msg) {
@@ -401,7 +341,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         final runningSub = this._subs['id'];
         if (runningSub != null) {
           print(runningSub);
-          this.printError('Subscription returned a nosub error $msg');
+          Log.error('Subscription returned a nosub error $msg');
           runningSub.error =
               ArgumentError('Subscription returned a nosub error');
           runningSub.done();
@@ -454,14 +394,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   void _inboxManager() {
     this._reader.listen((event) {
-      log(event.toString(), '<-');
+      Log.info(event.toString(), '<-');
       final message = json.decode(event) as Map<String, dynamic>;
       if (message.containsKey('msg')) {
         final mtype = message['msg'];
         if (this._messageHandlers.containsKey(mtype)) {
           this._messageHandlers[mtype](message);
         } else {
-          this.printWarning('Server sent unexpected message $message');
+          Log.warn('Server sent unexpected message $message');
         }
       } else if (message.containsKey('server_id')) {
         final serverId = message['server_id'];
@@ -471,25 +411,25 @@ class DDP implements ConnectionNotifier, StatusNotifier {
           print('Server cluster node $serverId');
         }
       } else {
-        this.printWarning('Server sent message without `msg` field $message');
+        Log.warn('Server sent message without `msg` field $message');
       }
     }, onDone: this._onDone, onError: this._onError, cancelOnError: true);
   }
 
   void _onDone() {
     this._status(ConnectStatus.disconnected);
-    this.printError('Disconnect due to websocket onDone');
-    this.printError(
+    Log.error('Disconnect due to websocket onDone');
+    Log.error(
         'Disconnected code: ${this._socket.closeCode}, reason: ${this._socket.closeReason}');
-    this.printError('Schedule reconnect due to websocket onDone');
+    Log.error('Schedule reconnect due to websocket onDone');
     this._reconnectLater();
   }
 
   void _onError(dynamic error) {
     this._status(ConnectStatus.disconnected);
-    this.printError('Disconnect due to websocket onError');
-    this.printError('Error: $error');
-    this.printError('Schedule reconnect due to websocket onError');
+    Log.error('Disconnect due to websocket onError');
+    Log.error('Error: $error');
+    Log.error('Schedule reconnect due to websocket onError');
     this._reconnectLater();
   }
 
@@ -524,52 +464,5 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   Future<Call> unSub(String id) {
     final completer = Completer<Call>();
     return completer.future;
-  }
-}
-
-class Writer implements StreamSink<dynamic> {
-  StreamSink<dynamic> _writer;
-
-  Writer(this._writer);
-
-  @override
-  void add(event) {
-    DDP.log(event.toString(), '->');
-    this._writer.add(event);
-  }
-
-  @override
-  void addError(Object error, [StackTrace stackTrace]) {
-    this._writer.addError(error, stackTrace);
-  }
-
-  @override
-  Future addStream(Stream stream) => this._writer.addStream(stream);
-
-  @override
-  Future close() => this._writer.close();
-
-  @override
-  Future get done => this._writer.done;
-
-  void setWriter(WebSocketSink writer) {
-    this._writer = _writer;
-  }
-}
-
-class Reader extends Stream<dynamic> {
-  Stream<dynamic> _reader;
-
-  Reader(this._reader);
-
-  @override
-  StreamSubscription listen(void Function(dynamic event) onData,
-      {Function onError, void Function() onDone, bool cancelOnError}) {
-    return this._reader.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
-  }
-
-  void setReader(Stream<dynamic> reader) {
-    this._reader = reader;
   }
 }

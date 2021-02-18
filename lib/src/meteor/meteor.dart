@@ -82,9 +82,6 @@ class Meteor {
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
 
-  static final StreamController _subscriptionStatusController =
-      StreamController<SubscriptionResult>();
-
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
@@ -335,7 +332,7 @@ class Meteor {
   static void logout() async {
     if (isConnected) {
       var result = await _client.call('logout', []);
-      await Utils.remove('token');
+      Utils.remove('token');
       _currentUserId = null;
       print(result.reply);
     }
@@ -354,22 +351,15 @@ class Meteor {
     if (result.error != null && result.error.toString().contains('nosub')) {
       throw MeteorError.parse(result.reply);
     } else {
-      return await result.id;
+      return result.id;
     }
-  }
-
-  /// Notify when subscriptions is ready
-  ///
-  /// Returns `Stream`
-  static Stream<SubscriptionResult> subscriptionsReady() {
-    return _subscriptionStatusController.stream;
   }
 
   /// Unsubscribe from a subscription using the [subscriptionId] returned by [subscribe].
   static Future<String> unsubscribe(String subscriptionId) async {
     var result = await _client.unSub(subscriptionId);
     if (result.error == null) {
-      return await result.id;
+      return result.id;
     } else {
       throw MeteorError.parse(result.reply);
     }
@@ -385,7 +375,7 @@ class Meteor {
   static Future<SubscribedCollection> collection(String collectionName) async {
     try {
       var collection = _client.collectionByName(collectionName);
-      return await SubscribedCollection(collection, collectionName);
+      return SubscribedCollection(collection, collectionName);
     } catch (err) {
       MeteorError.parse(err);
       return null;

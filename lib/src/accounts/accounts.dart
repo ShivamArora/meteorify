@@ -28,7 +28,6 @@ class Accounts {
         _notifyError(completer, result);
       } else {
         completer.complete(result.reply['id']);
-        ;
       }
     } else {
       completer.completeError('Not connected to server');

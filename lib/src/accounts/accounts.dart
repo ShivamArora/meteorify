@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:enhanced_ddp/enhanced_ddp.dart';
+import 'package:enhanced_meteorify/src/ddp/ddp.dart';
 
 import '../meteor/meteor.dart';
 

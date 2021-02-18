@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
-import 'package:enhanced_ddp/enhanced_ddp.dart';
+import 'package:enhanced_meteorify/src/ddp/ddp.dart';
 import 'package:enhanced_meteorify/src/utils/utils.dart';
 import 'subscribed_collection.dart';
 
@@ -55,10 +55,10 @@ typedef MeteorConnectionListener = void Function(
 /// Provided methods use the same syntax as of the [Meteor] class used by the Meteor framework.
 class Meteor {
   /// The client used to interact with DDP framework.
-  static DdpClient _client;
+  static DDP _client;
 
   /// Get the [_client].
-  static DdpClient get client => _client;
+  static DDP get client => _client;
 
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
@@ -81,8 +81,6 @@ class Meteor {
 
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
-
-  static SubscriptionListener _subscriptionListener;
 
   static final StreamController _subscriptionStatusController =
       StreamController<SubscriptionResult>();
@@ -128,8 +126,7 @@ class Meteor {
     var completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
-    _client = DdpClient('meteor', _connectionUrl, 'meteor');
-    _client.heartbeatInterval = heartbeatInterval;
+    _client = DDP(_connectionUrl, heartbeatInterval: heartbeatInterval);
     _client.connect();
 
     _statusListener = (status) {
@@ -319,7 +316,7 @@ class Meteor {
   }
 
   /// Used internally to notify the future about success/failure of login process.
-  static Future<String> _notifyLoginResult(Call result) async {
+  static Future<String> _notifyLoginResult(result) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
     log('login result: ${result.reply}');
@@ -354,21 +351,6 @@ class Meteor {
   static Future<String> subscribe(String subscriptionName,
       {List<dynamic> args = const []}) async {
     var result = await _client.sub(subscriptionName, args);
-    var subResult = SubscriptionResult();
-
-    subResult.subName = result.serviceMethod;
-    subResult.status = SubscriptionStatus.waiting;
-
-    _subscriptionListener = (name, status) {
-      if (result.serviceMethod == subscriptionName && result.error == null) {
-        subResult.subName = result.serviceMethod;
-        subResult.status = SubscriptionStatus.ready;
-        _subscriptionStatusController.sink.add(subResult);
-      }
-    };
-    _client.subscriptionReady(_subscriptionListener);
-    _subscriptionStatusController.sink.add(subResult);
-    print(result.reply);
     if (result.error != null && result.error.toString().contains('nosub')) {
       throw MeteorError.parse(result.reply);
     } else {

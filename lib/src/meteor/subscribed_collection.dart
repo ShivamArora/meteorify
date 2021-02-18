@@ -1,4 +1,5 @@
-import 'package:enhanced_ddp/enhanced_ddp.dart';
+
+import 'package:enhanced_meteorify/src/ddp/collection.dart';
 
 /// Provides useful methods to read data from a collection on the frontend.
 ///

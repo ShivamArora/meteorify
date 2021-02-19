@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:crypto/crypto.dart';
-import 'package:enhanced_meteorify/src/ddp/ddp.dart';
-import 'package:enhanced_meteorify/src/utils/utils.dart';
+import 'package:rxdart/rxdart.dart';
+
+import 'stream.dart';
 import 'subscribed_collection.dart';
+import '../ddp/ddp.dart';
+import '../utils/log.dart';
+import '../utils/utils.dart';
 
 /// An enum for describing the [ConnectionStatus].
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
@@ -24,31 +27,17 @@ class MeteorError extends Error {
     reason = err['reason']?.toString();
   }
 
-  String get errorMessage => reason;
-
   @override
   String toString() {
     return 'error: $error, errorType: $errorType, message: $message, reason: $reason';
   }
 }
 
-/// An enum for describing the [SubscriptionStatus].
-enum SubscriptionStatus { ready, waiting }
-
-/// An class to subscriptions results
-class SubscriptionResult {
-  String subName;
-  SubscriptionStatus status;
-
-  @override
-  String toString() {
-    return 'Subscription: $subName, Status: $status';
-  }
-}
-
 /// A listener for the current connection status.
 typedef MeteorConnectionListener = void Function(
     ConnectionStatus connectionStatus);
+
+typedef MeteorCurrentUserIdListener = void Function(String userId);
 
 /// Provides useful methods for interacting with the Meteor server.
 ///
@@ -57,11 +46,18 @@ class Meteor {
   /// The client used to interact with DDP framework.
   static DDP _client;
 
+  static UserId _userId = UserId(BehaviorSubject<String>());
+
   /// Get the [_client].
   static DDP get client => _client;
 
   /// A listener for the connection status.
   static MeteorConnectionListener _connectionListener;
+
+  static MeteorCurrentUserIdListener _currentUserIdListener;
+
+  static set currentUserIdListener(MeteorCurrentUserIdListener listener) =>
+      _currentUserIdListener = listener;
 
   /// Set the [_connectionListener]
   static set connectionListener(MeteorConnectionListener listener) =>
@@ -77,7 +73,7 @@ class Meteor {
   static String _currentUserId;
 
   /// Get the [_currentUserId].
-  static String get currentUserId => _currentUserId;
+  static String get currentUserId => _userId.lasValue;
 
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
@@ -87,10 +83,11 @@ class Meteor {
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
-  static Future<ConnectionStatus> connect(String url,
-      {bool autoLoginOnReconnect = false,
-      Duration heartbeatInterval = const Duration(seconds: 25)}) async {
-    var connectionStatus = await _connectToServer(url, heartbeatInterval);
+  static Future<ConnectionStatus> connect(
+    String url, {
+    bool autoLoginOnReconnect = false,
+  }) async {
+    var connectionStatus = await _connectToServer(url);
     _client.removeStatusListener(_statusListener);
 
     var _token = await Utils.getString('token');
@@ -118,12 +115,11 @@ class Meteor {
   /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in a future.
-  static Future<ConnectionStatus> _connectToServer(
-      String url, Duration heartbeatInterval) async {
+  static Future<ConnectionStatus> _connectToServer(String url) async {
     var completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
-    _client = DDP(_connectionUrl, heartbeatInterval: heartbeatInterval);
+    _client = DDP(_connectionUrl);
     _client.connect();
 
     _statusListener = (status) {
@@ -200,7 +196,7 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        print(result.reply);
+        Log.info(result.reply.toString());
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -228,7 +224,7 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        print(result.reply);
+        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -253,7 +249,7 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        print(result.reply);
+        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -284,7 +280,7 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        print(result.reply);
+        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -298,12 +294,12 @@ class Meteor {
   /// Returns the `loginToken` after logging in.
   static Future<String> loginWithToken(String loginToken) async {
     if (isConnected) {
-      log('token: $loginToken');
+      Log.info('token: $loginToken');
       var result = await _client.call('login', [
         {'resume': loginToken}
       ]);
       if (result.error == null) {
-        print(result.reply);
+        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -316,12 +312,16 @@ class Meteor {
   static Future<String> _notifyLoginResult(result) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
-    log('login result: ${result.reply}');
+    Log.info('login result: ${result.reply}');
     if (userId != null) {
-      _currentUserId = userId;
-      log('Logged in user $_currentUserId');
+      _userId.add(userId);
+
+      if (_currentUserIdListener != null)
+        _currentUserIdListener(_userId.lasValue);
+
+      Log.info('Logged in user ${_userId.lasValue}');
       var _token = await Utils.setString('token', token);
-      log('loginToken: $_token');
+      Log.info('loginToken: $_token');
       return token;
     } else {
       return null;
@@ -333,7 +333,9 @@ class Meteor {
     if (isConnected) {
       var result = await _client.call('logout', []);
       Utils.remove('token');
-      _currentUserId = null;
+      _currentUserId = _userId.add(null);
+      if (_currentUserIdListener != null)
+        _currentUserIdListener(_userId.lasValue);
       print(result.reply);
     }
   }

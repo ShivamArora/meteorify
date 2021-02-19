@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:enhanced_meteorify/src/ddp/stream.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'collection.dart';
 import 'log.dart';
 import 'message.dart';
+import 'stream.dart';
 
 enum ConnectStatus { disconnected, dialing, connecting, connected }
 
@@ -115,12 +115,9 @@ class Call {
 }
 
 class DDP implements ConnectionNotifier, StatusNotifier {
-  Duration heartbeatInterval;
-  Duration heartbeatTimeOut;
   Duration reconnectInterval;
 
   bool _waitingForConnect;
-  bool _wasPingSent;
 
   String _sessionId;
   // ignore: unused_field
@@ -136,7 +133,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   IdManager _idManager;
 
   Timer _reconnectTimer;
-  Timer _pingTimer;
 
   Map<String, Call> _calls;
   Map<String, Call> _subs;
@@ -150,16 +146,12 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   ReconnectListenersHolder _reconnectListenersHolder =
       ReconnectListenersHolder();
 
-  DDP(this._url,
-      {this.heartbeatInterval = const Duration(seconds: 20),
-      this.heartbeatTimeOut = const Duration(seconds: 15),
-      this.reconnectInterval = const Duration(seconds: 30)}) {
+  DDP(this._url, {this.reconnectInterval = const Duration(seconds: 30)}) {
     this._url = _url;
     this._serverId = '';
     this._version = '1';
     this._support = ["1", "pre2", "pre1"];
     this._waitingForConnect = false;
-    this._wasPingSent = false;
     this._idManager = IdManager();
     this._collections = {};
     this._calls = {};
@@ -228,8 +220,8 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         _waitingForConnect = true;
         _reconnectListenersHolder.onReconnectBegin();
       }
+      //
       this._status(ConnectStatus.dialing);
-      print(this._url);
       final ws = WebSocketChannel.connect(Uri.parse(this._url));
       this._start(
           ws, Message.connect(this._sessionId, this._version, this._support));
@@ -272,11 +264,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   }
 
   void close() {
-    if (this._pingTimer != null) {
-      this._pingTimer.cancel();
-      this._pingTimer = null;
-    }
-
     if (this._socket != null) {
       this._socket.closeCode;
       this._socket = null;
@@ -293,20 +280,13 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     }
   }
 
-  void ping() {
+  void _ping() async {
     if (this._socket != null) {
       this._send(Message.ping());
-      Future.delayed(this.heartbeatInterval, () {
-        if (this._wasPingSent) {
-          Log.error('Disconnected due to not received pong');
-          Log.error('heartbeat interval is ${this.heartbeatInterval}');
-          this._reconnectLater();
-        }
-      });
     }
   }
 
-  void pong() {
+  void _pong() {
     if (this._socket != null) {
       this._send(Message.pong());
     }
@@ -318,36 +298,25 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       this._status(ConnectStatus.connected);
       this._version = '1';
       this._sessionId = msg['session'] as String;
-      this._pingTimer = Timer.periodic(this.heartbeatInterval, (timer) {
-        this.ping();
-      });
       this._connectionListener.forEach((l) => l());
     };
-
     this._messageHandlers['ping'] = (msg) {
-      if (!this._wasPingSent) {
-        this._wasPingSent = true;
-        this.pong();
-      }
+      this._pong();
     };
-
     this._messageHandlers['pong'] = (msg) {
-      this._wasPingSent = false;
+      this._ping();
     };
-
     this._messageHandlers['nosub'] = (msg) {
       if (msg.containsKey('id')) {
         final id = msg['id'] as String;
         final runningSub = this._subs['id'];
         if (runningSub != null) {
-          print(runningSub);
           Log.error('Subscription returned a nosub error $msg');
           runningSub.error =
               ArgumentError('Subscription returned a nosub error');
           runningSub.done();
           this._subs.remove(id);
         }
-
         final runningUnSub = this._unsubs[id];
         if (runningUnSub != null) {
           runningUnSub.done();
@@ -355,7 +324,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         }
       }
     };
-
     this._messageHandlers['ready'] = (msg) {
       if (msg.containsKey('subs')) {
         final subs = msg['subs'] as List<dynamic>;
@@ -390,12 +358,13 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         call.done();
       }
     };
+    this._messageHandlers['updated'] = (msg) {};
   }
 
   void _inboxManager() {
     this._reader.listen((event) {
-      Log.info(event.toString(), '<-');
       final message = json.decode(event) as Map<String, dynamic>;
+      Log.info(event, '<-');
       if (message.containsKey('msg')) {
         final mtype = message['msg'];
         if (this._messageHandlers.containsKey(mtype)) {
@@ -451,8 +420,26 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     return Collection.mock();
   }
 
+  Call _apply(String serviceMethod, OnCallDone done, List<dynamic> args) {
+    args ??= [];
+
+    final _call = Call()
+      ..id = this._idManager.next()
+      ..serviceMethod = serviceMethod
+      ..args = args
+      ..owner = this;
+
+    done ??= (c) {};
+
+    _call.onceDone(done);
+    this._calls[_call.id] = _call;
+    this._send(Message.method(_call.id, serviceMethod, args));
+    return _call;
+  }
+
   Future<Call> call(String serviceMetod, List<dynamic> args) {
     final completer = Completer<Call>();
+    this._apply(serviceMetod, (call) => completer.complete(call), args);
     return completer.future;
   }
 

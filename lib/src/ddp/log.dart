@@ -1,9 +1,15 @@
 class Log {
   static void info(String msg, String direction) {
-    if (direction == '->')
-      print('\x1B[34m[DDP] -> :: $msg\x1B[0m');
-    else
-      print('\x1B[34m[DDP] <- :: $msg\x1B[0m');
+    switch (direction) {
+      case '->':
+        print('\x1B[34m[DDP] -> :: $msg\x1B[0m');
+        break;
+      case '<-':
+        print('\x1B[34m[DDP] <- :: $msg\x1B[0m');
+        break;
+      default:
+        print('\x1B[34m[DDP] $direction :: $msg\x1B[0m');
+    }
   }
 
   static void warn(String text) {

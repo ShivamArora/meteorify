@@ -1,3 +1,9 @@
+## 3.0.0-nullsafety.2
+ - Fixed unexpected null value
+
+## 3.0.0-nullsafety.1
+ - Fix analysis suggestions
+
 ## 3.0.0-nullsafety.0
  - Remove enhanced_ddp dependency
  - DDP rewritten, killing bugs and empowering enhanced meteorify

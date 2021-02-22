@@ -73,7 +73,8 @@ class KeyCache implements Collection {
   @override
   void changed(Map<String, dynamic> doc) {
     final _pair = _parse(doc);
-    if (_pair.item2.isNotEmpty) {
+    // ignore: unnecessary_null_comparison
+    if (_pair.item2 != null) {
       if (this._items.containsKey((_pair.item1))) {
         final _item = this._items[_pair.item1];
         _pair.item2.forEach((key, value) => _item![key] = value);
@@ -86,7 +87,8 @@ class KeyCache implements Collection {
   @override
   void removed(Map<String, dynamic> doc) {
     final _pair = _parse(doc);
-    if (_pair.item1.isNotEmpty) {
+    // ignore: unnecessary_null_comparison
+    if (_pair.item1 != null) {
       this._items.remove(_pair.item1);
       this.notify('remove', _pair.item1, null as Map<String, dynamic>);
     }

@@ -1,3 +1,9 @@
+## 3.0.0-nullsafety.0
+ - Remove enhanced_ddp dependency
+ - DDP rewritten, killing bugs and empowering enhanced meteorify
+ - Null safety version 🥳
+ - enhanced_ddp package is now deprecated
+
 ## 2.3.4
  - Update enhanced_ddp package
 

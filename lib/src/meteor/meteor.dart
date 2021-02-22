@@ -79,10 +79,9 @@ class Meteor {
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
-  static Future<ConnectionStatus> connect(
-    String url, {
-    bool autoLoginOnReconnect = false,
-  }) async {
+  static Future<ConnectionStatus> connect(String url,
+      {bool autoLoginOnReconnect = false,
+      Duration reconnectInterval = const Duration(seconds: 30)}) async {
     var connectionStatus = await _connectToServer(url);
     _client.removeStatusListener(_statusListener);
 

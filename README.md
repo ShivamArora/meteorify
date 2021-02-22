@@ -6,7 +6,6 @@ Carefully extended [meteorify](https://github.com/ShivamArora/meteorify) package
 Connect your web or flutter apps, written in Dart, to the Meteor framework.
 
 
-
 ## Features 
 
 - Connect to Meteor server
@@ -25,7 +24,15 @@ Add this to your package's `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^2.0.0
+  enhanced_meteorify: ^2.3.4
+```
+
+
+Null safety:
+
+```yaml
+dependencies:
+  enhanced_meteorify: ^3.0.0-nullsafety.0
 ```
 
 
@@ -75,7 +82,12 @@ Meteor.connectionListener = (ConnectionStatus connectionStatus){
 }
 ```
 
-
+### Listen for userId
+```dart
+Meteor.currentUserIdListener = (String userId) {
+    print(userId);
+}
+```
 
 ### Subscriptions
 
@@ -360,7 +372,6 @@ export const helloWorld = new ValidatedMethod({
   },
 });
 ```
-
 
 
 #### Invoking custom methods

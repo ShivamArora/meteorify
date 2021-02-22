@@ -24,7 +24,7 @@ Tuple2<String, Map<String, dynamic>> _parse(Map<String, dynamic> update) {
 }
 
 abstract class Collection {
-  void notify(String operation, String id, Map<String, dynamic>? doc);
+  void notify(String operation, String id, Map<String, dynamic> doc);
 
   void added(Map<String, dynamic> doc);
 
@@ -55,9 +55,9 @@ class KeyCache implements Collection {
   KeyCache(this.name, this._items, this._listeners);
 
   @override
-  void notify(String operation, String id, Map<String, dynamic>? doc) {
+  void notify(String operation, String id, Map<String, dynamic> doc) {
     this._listeners.forEach((listener) {
-      listener(this.name, operation, id, doc!);
+      listener(this.name, operation, id, doc);
     });
   }
 
@@ -66,7 +66,7 @@ class KeyCache implements Collection {
     final _pair = _parse(doc);
     if (_pair.item2.isNotEmpty) {
       this._items[_pair.item1] = _pair.item2;
-      this.notify(('create'), _pair.item1, _pair.item2);
+      this.notify('create', _pair.item1, _pair.item2);
     }
   }
 
@@ -90,13 +90,13 @@ class KeyCache implements Collection {
     // ignore: unnecessary_null_comparison
     if (_pair.item1 != null) {
       this._items.remove(_pair.item1);
-      this.notify('remove', _pair.item1, null as Map<String, dynamic>);
+      this.notify('remove', _pair.item1, Map<String, dynamic>());
     }
   }
 
   @override
   void reset() {
-    this.notify('reset', '', null);
+    this.notify('reset', '', Map<String, dynamic>());
   }
 
   @override
@@ -133,7 +133,7 @@ class _MockCache implements Collection {
   Map<String, dynamic> findOne(String id) => {};
 
   @override
-  void notify(String operation, String id, Map<String, dynamic>? doc) {}
+  void notify(String operation, String id, Map<String, dynamic> doc) {}
 
   @override
   void removeUpdateListeners() {}

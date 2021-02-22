@@ -1,3 +1,6 @@
+## 3.0.0-nullsafety.3
+ - Fixed unexpected null value
+
 ## 3.0.0-nullsafety.2
  - Fixed unexpected null value
 

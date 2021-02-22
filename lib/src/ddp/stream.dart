@@ -16,7 +16,7 @@ class Writer implements StreamSink<dynamic> {
   }
 
   @override
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     this._writer.addError(error, stackTrace);
   }
 
@@ -40,8 +40,8 @@ class Reader extends Stream<dynamic> {
   Reader(this._reader);
 
   @override
-  StreamSubscription listen(void Function(dynamic event) onData,
-      {Function onError, void Function() onDone, bool cancelOnError}) {
+  StreamSubscription listen(void Function(dynamic event)? onData,
+      {Function? onError, void Function()? onDone, bool? cancelOnError}) {
     return this._reader.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }

@@ -32,7 +32,7 @@ class Accounts {
     } else {
       completer.completeError('Not connected to server');
     }
-    return completer.future;
+    return completer.future as String;
   }
 
   /// Change the user account password provided the user is already logged in.
@@ -53,7 +53,7 @@ class Accounts {
       print('Not connected to server');
       completer.completeError('Not connected to server');
     }
-    return completer.future;
+    return completer.future as String;
   }
 
   /// Sends a `forgotPassword` email to the user with a link to reset the password.
@@ -74,7 +74,7 @@ class Accounts {
       print('Not connected to server');
       completer.completeError('Not connected to server');
     }
-    return completer.future;
+    return completer.future as String;
   }
 
   /// Resets the user password by taking the [passwordResetToken] and the [newPassword].
@@ -93,7 +93,7 @@ class Accounts {
       print('Not connected to server');
       completer.completeError('Not connected to server');
     }
-    return completer.future;
+    return completer.future as String;
   }
 
   /// Verifies the user email by taking the [verificationToken] sent to the user.
@@ -110,7 +110,7 @@ class Accounts {
       print('Not connected to server');
       completer.completeError('Not connected to server');
     }
-    return completer.future;
+    return completer.future as String;
   }
 
   /// Notifies a future with the error.

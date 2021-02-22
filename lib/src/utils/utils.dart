@@ -52,7 +52,7 @@ class Utils {
     await prefs.remove(key);
   }
 
-  static bool isNullorEmpty(String key) {
+  static bool isNullorEmpty(String? key) {
     return (key != null && key.isNotEmpty) ? false : true;
   }
 }

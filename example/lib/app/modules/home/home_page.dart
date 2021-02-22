@@ -38,10 +38,14 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   ElevatedButton(
                       onPressed: () async {
-                        var result = await Meteor.call('method.test', []);
-                        setState(() {
-                          methodWithoutArguments = result;
-                        });
+                        try {
+                          var result = await Meteor.call('method.test', []);
+                          setState(() {
+                            methodWithoutArguments = result;
+                          });
+                        } on MeteorError catch (error) {
+                          print(error);
+                        }
                       },
                       child: Text('Method without arguments')),
                   SizedBox(height: 10),
@@ -49,11 +53,15 @@ class _HomePageState extends State<HomePage> {
                   SizedBox(height: 10),
                   ElevatedButton(
                       onPressed: () async {
-                        var result =
-                            await Meteor.call('method.test.args', ['teste']);
-                        setState(() {
-                          methodWithArguments = result;
-                        });
+                        try {
+                          var result =
+                              await Meteor.call('method.test.args', ['teste']);
+                          setState(() {
+                            methodWithArguments = result;
+                          });
+                        } on MeteorError catch (error) {
+                          print(error);
+                        }
                       },
                       child: Text('Method with arguments')),
                   SizedBox(height: 10),
@@ -85,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                       child: Text('Login')),
                   SizedBox(height: 10),
                   Text('UserId: ${Meteor.currentUserId}'),
-                  if (Meteor.currentUserId != null)
+                  if (Meteor.currentUserId.isNotEmpty)
                     Text('Logado')
                   else
                     Text('Deslogado'),

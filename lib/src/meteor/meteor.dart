@@ -13,10 +13,10 @@ enum ConnectionStatus { CONNECTED, DISCONNECTED }
 
 /// An class to parse Meteor Errors
 class MeteorError extends Error {
-  String error;
-  String errorType;
-  String message;
-  String reason;
+  String? error;
+  String? errorType;
+  String? message;
+  String? reason;
 
   MeteorError.parse(Map<String, dynamic> err) {
     error = err['error']?.toString();
@@ -42,15 +42,15 @@ typedef MeteorCurrentUserIdListener = void Function(String userId);
 /// Provided methods use the same syntax as of the [Meteor] class used by the Meteor framework.
 class Meteor {
   /// The client used to interact with DDP framework.
-  static DDP _client;
+  static DDP? _client;
 
   /// Get the [_client].
-  static DDP get client => _client;
+  static DDP get client => _client!;
 
   /// A listener for the connection status.
-  static MeteorConnectionListener _connectionListener;
+  static MeteorConnectionListener? _connectionListener;
 
-  static MeteorCurrentUserIdListener _currentUserIdListener;
+  static MeteorCurrentUserIdListener? _currentUserIdListener;
 
   static set currentUserIdListener(MeteorCurrentUserIdListener listener) =>
       _currentUserIdListener = listener;
@@ -60,19 +60,19 @@ class Meteor {
       _connectionListener = listener;
 
   /// Connection url of the Meteor server.
-  static String _connectionUrl;
+  static String? _connectionUrl;
 
   /// A boolean to check the connection status.
   static bool isConnected = false;
 
   /// The [_currentUserId] of the logged in user.
-  static String _currentUserId;
+  static String _currentUserId = '';
 
   /// Get the [_currentUserId].
   static String get currentUserId => _currentUserId;
 
   /// The status listener used to listen for connection status updates.
-  static StatusListener _statusListener;
+  static StatusListener? _statusListener;
 
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
@@ -83,7 +83,7 @@ class Meteor {
       {bool autoLoginOnReconnect = false,
       Duration reconnectInterval = const Duration(seconds: 30)}) async {
     var connectionStatus = await _connectToServer(url);
-    _client.removeStatusListener(_statusListener);
+    _client!.removeStatusListener(_statusListener!);
 
     var _token = await Utils.getString('token');
     _statusListener = (status) {
@@ -93,8 +93,8 @@ class Meteor {
           try {
             loginWithToken(_token);
             _notifyConnected();
-          } catch (err) {
-            print(err.errorMessage);
+          } on MeteorError catch (err) {
+            print(err.reason);
           }
         }
       } else if (status == ConnectStatus.disconnected) {
@@ -102,7 +102,7 @@ class Meteor {
         _notifyDisconnected();
       }
     };
-    _client.addStatusListener(_statusListener);
+    _client!.addStatusListener(_statusListener!);
     return connectionStatus;
   }
 
@@ -114,8 +114,8 @@ class Meteor {
     var completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
-    _client = DDP(_connectionUrl);
-    _client.connect();
+    _client = DDP(_connectionUrl!);
+    _client!.connect();
 
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
@@ -132,32 +132,32 @@ class Meteor {
         }
       }
     };
-    _client.addStatusListener(_statusListener);
+    _client!.addStatusListener(_statusListener!);
     return completer.future;
   }
 
   /// Disconnect from Meteor framework.
   static void disconnect() {
-    _client.close();
+    _client!.close();
     _notifyDisconnected();
   }
 
   /// Reconnect with the Meteor framework.
   static void reconnect() {
-    _client.reconnect();
+    _client!.reconnect();
   }
 
   /// Notifies the [_connectionListener] about the network connected status.
   static void _notifyConnected() {
     if (_connectionListener != null) {
-      _connectionListener(ConnectionStatus.CONNECTED);
+      _connectionListener!(ConnectionStatus.CONNECTED);
     }
   }
 
   /// Notifies the [_connectionListener] about the network disconnected status.
   static void _notifyDisconnected() {
     if (_connectionListener != null) {
-      _connectionListener(ConnectionStatus.DISCONNECTED);
+      _connectionListener!(ConnectionStatus.DISCONNECTED);
     }
   }
 
@@ -167,13 +167,13 @@ class Meteor {
 
   /// Returns `true` if user is logged in.
   static bool isLoggedIn() {
-    return _currentUserId != null;
+    return _currentUserId.isNotEmpty;
   }
 
   /// Login using the user's [email] or [username] and [password].
   ///
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithPassword(String user, String password) async {
+  static Future<String?> loginWithPassword(String user, String password) async {
     if (isConnected) {
       var query;
       if (!user.contains('@')) {
@@ -181,7 +181,7 @@ class Meteor {
       } else {
         query = {'email': user};
       }
-      var result = await _client.call('login', [
+      var result = await _client!.call('login', [
         {
           'user': query,
           'password': {
@@ -205,11 +205,11 @@ class Meteor {
   /// [userId] the unique Google userId. Must be fetched from the Google oAuth API
   /// [authHeaders] the authHeaders from Google oAuth API for server side validation
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithGoogle(
+  static Future<String?> loginWithGoogle(
       String email, String userId, Object authHeaders) async {
     final googleLoginPlugin = true;
     if (isConnected) {
-      var result = await _client.call('login', [
+      var result = await _client!.call('login', [
         {
           'email': email,
           'userId': userId,
@@ -231,10 +231,10 @@ class Meteor {
   /// [userId] the unique Facebook userId. Must be fetched from the Facebook Login API
   /// [token] the token from Facebook API Login for server side validation
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithFacebook(String userId, String token) async {
+  static Future<String?> loginWithFacebook(String userId, String token) async {
     final facebookLoginPlugin = true;
     if (isConnected) {
-      var result = await _client.call('login', [
+      var result = await _client!.call('login', [
         {
           'userId': userId,
           'token': token,
@@ -257,12 +257,12 @@ class Meteor {
   /// [givenName] user's given name. Must be fetched from the Apple Login API
   /// [lastName] user's last name. Must be fetched from the Apple Login API
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithApple(
+  static Future<String?> loginWithApple(
       String userId, List<int> jwt, String givenName, String lastName) async {
     final appleLoginPlugin = true;
     if (isConnected) {
       var token = Utils.parseJwt(utf8.decode(jwt));
-      var result = await _client.call('login', [
+      var result = await _client!.call('login', [
         {
           'userId': userId,
           'email': token['email'],
@@ -283,10 +283,10 @@ class Meteor {
   /// Login using a [loginToken].
   ///
   /// Returns the `loginToken` after logging in.
-  static Future<String> loginWithToken(String loginToken) async {
+  static Future<String?> loginWithToken(String loginToken) async {
     if (isConnected) {
       Log.info('token: $loginToken');
-      var result = await _client.call('login', [
+      var result = await _client!.call('login', [
         {'resume': loginToken}
       ]);
       if (result.error == null) {
@@ -303,28 +303,23 @@ class Meteor {
     String userId = result.reply['id'];
     String token = result.reply['token'];
     Log.info('login result: ${result.reply}');
-    if (userId != null) {
-      _currentUserId = userId;
+    _currentUserId = userId;
 
-      if (_currentUserIdListener != null)
-        _currentUserIdListener(_currentUserId);
+    if (_currentUserIdListener != null) _currentUserIdListener!(_currentUserId);
 
-      Log.info('Logged in user $_currentUserId');
-      await Utils.setString('token', token);
-      return token;
-    } else {
-      return null;
-    }
+    Log.info('Logged in user $_currentUserId');
+    await Utils.setString('token', token);
+    return token;
   }
 
   /// Logs out the user.
   static void logout() async {
     if (isConnected) {
-      var result = await _client.call('logout', []);
+      var result = await _client!.call('logout', []);
       Utils.remove('token');
-      _currentUserId = null;
+      _currentUserId = '';
       if (_currentUserIdListener != null)
-        _currentUserIdListener(_currentUserId);
+        _currentUserIdListener!(_currentUserId);
       Log.info(result.reply);
     }
   }
@@ -336,9 +331,9 @@ class Meteor {
   /// Subscribe to a subscription using the [subscriptionName].
   ///
   /// Returns the `subscriptionId` as a [String].
-  static Future<String> subscribe(String subscriptionName,
+  static Future<String?> subscribe(String subscriptionName,
       {List<dynamic> args = const []}) async {
-    var result = await _client.sub(subscriptionName, args);
+    var result = await _client!.sub(subscriptionName, args);
     if (result.error != null && result.error.toString().contains('nosub')) {
       throw MeteorError.parse(result.reply);
     } else {
@@ -347,8 +342,8 @@ class Meteor {
   }
 
   /// Unsubscribe from a subscription using the [subscriptionId] returned by [subscribe].
-  static Future<String> unsubscribe(String subscriptionId) async {
-    var result = await _client.unSub(subscriptionId);
+  static Future<String?> unsubscribe(String subscriptionId) async {
+    var result = await _client!.unSub(subscriptionId);
     if (result.error == null) {
       return result.id;
     } else {
@@ -363,12 +358,12 @@ class Meteor {
   /// Returns a [SubscribedCollection] using the [collectionName].
   ///
   /// [SubscribedCollection] supports only read operations.
-  static Future<SubscribedCollection> collection(String collectionName) async {
+  static Future<SubscribedCollection?> collection(String collectionName) async {
     try {
-      var collection = _client.collectionByName(collectionName);
-      return SubscribedCollection(collection, collectionName);
+      var collection = _client!.collectionByName(collectionName);
+      return SubscribedCollection(collection!, collectionName);
     } catch (err) {
-      MeteorError.parse(err);
+      MeteorError.parse(err as Map<String, dynamic>);
       return null;
     }
   }
@@ -382,7 +377,7 @@ class Meteor {
   /// Returns the value returned by the service method or an error using a [Future].
   static Future<dynamic> call(
       String methodName, List<dynamic> arguments) async {
-    var result = await _client.call(methodName, arguments);
+    var result = await _client!.call(methodName, arguments);
     if (result.error == null) {
       return await result.reply;
     } else {

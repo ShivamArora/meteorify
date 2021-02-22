@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class Message {
-  static String connect(String session, String version, List<String> support) {
+  static String connect(String? session, String version, List<String> support) {
     if (session != null)
       return json.encode({
         "msg": "connect",

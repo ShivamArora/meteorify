@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
-import 'package:rxdart/rxdart.dart';
 
-import 'stream.dart';
 import 'subscribed_collection.dart';
 import '../ddp/ddp.dart';
 import '../utils/log.dart';
@@ -46,8 +44,6 @@ class Meteor {
   /// The client used to interact with DDP framework.
   static DDP _client;
 
-  static UserId _userId = UserId(BehaviorSubject<String>());
-
   /// Get the [_client].
   static DDP get client => _client;
 
@@ -73,7 +69,7 @@ class Meteor {
   static String _currentUserId;
 
   /// Get the [_currentUserId].
-  static String get currentUserId => _userId.lasValue;
+  static String get currentUserId => _currentUserId;
 
   /// The status listener used to listen for connection status updates.
   static StatusListener _statusListener;
@@ -196,7 +192,6 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        Log.info(result.reply.toString());
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -224,7 +219,6 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -249,7 +243,6 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -280,7 +273,6 @@ class Meteor {
         }
       ]);
       if (result.error == null) {
-        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -299,7 +291,6 @@ class Meteor {
         {'resume': loginToken}
       ]);
       if (result.error == null) {
-        Log.info(result.reply);
         return await _notifyLoginResult(result);
       } else {
         throw MeteorError.parse(result.reply);
@@ -314,14 +305,13 @@ class Meteor {
     String token = result.reply['token'];
     Log.info('login result: ${result.reply}');
     if (userId != null) {
-      _userId.add(userId);
+      _currentUserId = userId;
 
       if (_currentUserIdListener != null)
-        _currentUserIdListener(_userId.lasValue);
+        _currentUserIdListener(_currentUserId);
 
-      Log.info('Logged in user ${_userId.lasValue}');
-      var _token = await Utils.setString('token', token);
-      Log.info('loginToken: $_token');
+      Log.info('Logged in user $_currentUserId');
+      await Utils.setString('token', token);
       return token;
     } else {
       return null;
@@ -333,10 +323,10 @@ class Meteor {
     if (isConnected) {
       var result = await _client.call('logout', []);
       Utils.remove('token');
-      _currentUserId = _userId.add(null);
+      _currentUserId = null;
       if (_currentUserIdListener != null)
-        _currentUserIdListener(_userId.lasValue);
-      print(result.reply);
+        _currentUserIdListener(_currentUserId);
+      Log.info(result.reply);
     }
   }
 

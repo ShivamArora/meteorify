@@ -220,7 +220,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         _waitingForConnect = true;
         _reconnectListenersHolder.onReconnectBegin();
       }
-      //
+
       this._status(ConnectStatus.dialing);
       final ws = WebSocketChannel.connect(Uri.parse(this._url));
       this._start(
@@ -445,11 +445,43 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   Future<Call> sub(String subName, List<dynamic> args) {
     final completer = Completer<Call>();
+    this._subscribe(subName, (call) => completer.complete(call), args);
     return completer.future;
   }
 
   Future<Call> unSub(String id) {
     final completer = Completer<Call>();
+    this._unSubscribe(id, (call) => completer.complete(call));
     return completer.future;
+  }
+
+  Call _subscribe(String subName, OnCallDone done, List<dynamic> args) {
+    args ??= [];
+
+    final _call = Call()
+      ..id = '$subName-${_idManager.next()}'
+      ..serviceMethod = subName
+      ..args = args
+      ..owner = this;
+
+    done ??= (c) {};
+
+    _call.onceDone(done);
+    this._subs[_call.id] = _call;
+    this._send(Message.sub(_call.id, subName, args));
+    return _call;
+  }
+
+  Call _unSubscribe(String id, OnCallDone done) {
+    final _call = Call()
+      ..id = id
+      ..owner = this;
+
+    done ??= (c) {};
+
+    _call.onceDone(done);
+    this._unsubs[_call.id] = _call;
+    this._send(Message.unSub(_call.id));
+    return _call;
   }
 }

@@ -56,17 +56,19 @@ class Meteor {
   static int mongoDbPort;
 
   /// Connect to the Meteor framework using the [url].
-  /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
-  /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  /// Takes optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
+  /// Takes optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  /// Takes optional parameter [enableLogs] which indicates if the underlying client is allowed to print logs (default: true)
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(String url,
       {bool autoLoginOnReconnect = false,
       Duration heartbeatInterval = const Duration(minutes: 1),
-      int dbPort = 3001}) async {
+      int dbPort = 3001,
+      bool enableLogs = true}) async {
     mongoDbPort = dbPort;
     ConnectionStatus connectionStatus =
-        await _connectToServer(url, heartbeatInterval);
+        await _connectToServer(url, heartbeatInterval, enableLogs);
     _client.removeStatusListener(_statusListener);
 
     _statusListener = (status) {
@@ -86,17 +88,19 @@ class Meteor {
   }
 
   /// Connect to Meteor framework using the [url].
-  /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  /// Takes parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  /// Takes parameter [enableLogs] which indicates if the underlying client is allowed to print logs
   ///
   /// Returns a [ConnectionStatus] wrapped in a future.
   static Future<ConnectionStatus> _connectToServer(
-      String url, Duration heartbeatInterval) async {
+      String url, Duration heartbeatInterval, bool enableLogs) async {
     Completer<ConnectionStatus> completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
     _client = DdpClient('meteor', _connectionUrl, 'meteor');
     _client.heartbeatInterval = heartbeatInterval;
     _client.connect();
+    _client.setSocketLogActive(enableLogs);
 
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {

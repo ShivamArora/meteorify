@@ -17,10 +17,10 @@ Tuple2<String, Map<String, dynamic>> _parse(Map<String, dynamic> update) {
           return Tuple2(_id, _updates as Map<String, dynamic>);
         }
       }
-      return Tuple2(_id, {} as Map<String, dynamic>);
+      return Tuple2(_id, Map<String, dynamic>.from({}));
     }
   }
-  return Tuple2('', {} as Map<String, dynamic>);
+  return Tuple2('', Map<String, dynamic>.from({}));
 }
 
 abstract class Collection {

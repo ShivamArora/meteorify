@@ -1,5 +1,13 @@
-## 3.0.0-nullsafety.4
- - Fixed wrong null usage
+## 3.0.0
+ - Fixed wrong null usage [#1](https://github.com/wendellrocha/enhanced_meteorify/pull/1) thanks [@ruerob](https://github.com/ShivamArora/meteorify)
+ - Update web_socket_channel
+ - Update tuple
+ - Update shared_preferences
+ - Update crypto
+ - Remove enhanced_ddp dependency
+ - DDP rewritten, killing bugs and empowering enhanced meteorify
+ - Null safety version 🥳
+ - enhanced_ddp package is now deprecated
 
 ## 3.0.0-nullsafety.3
  - Fixed unexpected null value

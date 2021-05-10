@@ -32,7 +32,7 @@ Null safety:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^3.0.0-nullsafety.2
+  enhanced_meteorify: ^3.0.0
 ```
 
 

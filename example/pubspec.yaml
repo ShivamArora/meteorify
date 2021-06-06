@@ -19,11 +19,5 @@ dependencies:
   flutter:
     sdk: flutter
 
-
-dev_dependencies:
-  mockito: ^4.1.4
-  flutter_test:
-    sdk: flutter
-
 flutter:
   uses-material-design: true

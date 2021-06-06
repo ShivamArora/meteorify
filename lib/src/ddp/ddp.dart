@@ -263,7 +263,6 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   void close() {
     if (this._socket != null) {
-      this._socket!.closeCode;
       this._socket = null;
     }
 
@@ -387,7 +386,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._status(ConnectStatus.disconnected);
     Log.error('Disconnect due to websocket onDone');
     Log.error(
-        'Disconnected code: ${this._socket!.closeCode}, reason: ${this._socket!.closeReason}');
+        'Disconnected code: ${this._socket?.closeCode}, reason: ${this._socket?.closeReason}');
     Log.error('Schedule reconnect due to websocket onDone');
     this._reconnectLater();
   }

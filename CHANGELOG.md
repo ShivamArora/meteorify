@@ -1,5 +1,8 @@
+## 3.0.1 
+ - [Null check operator used on a null value](https://github.com/wendellrocha/enhanced_meteorify/pull/1#issuecomment-852964934) thanks [@ruerob](https://github.com/ruerob)
+
 ## 3.0.0
- - Fixed wrong null usage [#1](https://github.com/wendellrocha/enhanced_meteorify/pull/1) thanks [@ruerob](https://github.com/ShivamArora/meteorify)
+ - Fixed wrong null usage [#1](https://github.com/wendellrocha/enhanced_meteorify/pull/1) thanks [@ruerob](https://github.com/ruerob)
  - Update web_socket_channel
  - Update tuple
  - Update shared_preferences

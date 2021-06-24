@@ -1,3 +1,14 @@
+## 3.0.2
+ - Added `enableLogs` argument (default: true) to Meteor.connect to enable or disable DDP logs (does not affect error logs) [#2](https://github.com/wendellrocha/enhanced_meteorify/issues/2)
+  ```dart
+   await Meteor.connect(
+      'ws://' + Constants.URL_SERVIDOR + '/websocket',
+      reconnectInterval: Duration(seconds: 1),
+      autoLoginOnReconnect: true,
+      enableLogs: false,
+    );
+  ```
+
 ## 3.0.1 
  - [Null check operator used on a null value](https://github.com/wendellrocha/enhanced_meteorify/pull/1#issuecomment-852964934) thanks [@ruerob](https://github.com/ruerob)
 

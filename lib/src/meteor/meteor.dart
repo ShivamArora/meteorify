@@ -65,6 +65,9 @@ class Meteor {
   /// A boolean to check the connection status.
   static bool isConnected = false;
 
+  /// bool to enable Meteorify/DDP logs
+  static bool _enableLogs = true;
+
   /// The [_currentUserId] of the logged in user.
   static String _currentUserId = '';
 
@@ -79,9 +82,13 @@ class Meteor {
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
-  static Future<ConnectionStatus> connect(String url,
-      {bool autoLoginOnReconnect = false,
-      Duration reconnectInterval = const Duration(seconds: 30)}) async {
+  static Future<ConnectionStatus> connect(
+    String url, {
+    bool autoLoginOnReconnect = false,
+    Duration reconnectInterval = const Duration(seconds: 30),
+    bool enableLogs = true,
+  }) async {
+    _enableLogs = enableLogs;
     var connectionStatus = await _connectToServer(url);
     _client!.removeStatusListener(_statusListener!);
 
@@ -94,7 +101,7 @@ class Meteor {
             loginWithToken(_token);
             _notifyConnected();
           } on MeteorError catch (err) {
-            print(err.reason);
+            Log.error(err.reason!);
           }
         }
       } else if (status == ConnectStatus.disconnected) {
@@ -110,11 +117,13 @@ class Meteor {
   /// Takes an another parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
   ///
   /// Returns a [ConnectionStatus] wrapped in a future.
-  static Future<ConnectionStatus> _connectToServer(String url) async {
+  static Future<ConnectionStatus> _connectToServer(
+    String url,
+  ) async {
     var completer = Completer<ConnectionStatus>();
 
     _connectionUrl = url;
-    _client = DDP(_connectionUrl!);
+    _client = DDP(_connectionUrl!, enableLogs: _enableLogs);
     _client!.connect();
 
     _statusListener = (status) {
@@ -285,7 +294,7 @@ class Meteor {
   /// Returns the `loginToken` after logging in.
   static Future<String?> loginWithToken(String loginToken) async {
     if (isConnected) {
-      Log.info('token: $loginToken');
+      if (_enableLogs) Log.info('token: $loginToken');
       var result = await _client!.call('login', [
         {'resume': loginToken}
       ]);
@@ -302,12 +311,12 @@ class Meteor {
   static Future<String> _notifyLoginResult(result) async {
     String userId = result.reply['id'];
     String token = result.reply['token'];
-    Log.info('login result: ${result.reply}');
+    if (_enableLogs) Log.info('login result: ${result.reply}');
     _currentUserId = userId;
 
     if (_currentUserIdListener != null) _currentUserIdListener!(_currentUserId);
 
-    Log.info('Logged in user $_currentUserId');
+    if (_enableLogs) Log.info('Logged in user $_currentUserId');
     await Utils.setString('token', token);
     return token;
   }
@@ -320,7 +329,7 @@ class Meteor {
       _currentUserId = '';
       if (_currentUserIdListener != null)
         _currentUserIdListener!(_currentUserId);
-      Log.info(result.reply);
+      if (_enableLogs) Log.info(result.reply);
     }
   }
 

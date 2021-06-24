@@ -6,12 +6,15 @@ import 'log.dart';
 
 class Writer implements StreamSink<dynamic> {
   StreamSink<dynamic> _writer;
+  bool _enableLogs = true;
 
-  Writer(this._writer);
+  Writer(this._writer, {enableLogs = true}) {
+    this._enableLogs = enableLogs;
+  }
 
   @override
   void add(event) {
-    Log.info(event.toString(), '->');
+    if (_enableLogs) Log.info(event.toString(), '->');
     this._writer.add(event);
   }
 

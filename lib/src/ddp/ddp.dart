@@ -118,6 +118,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   Duration reconnectInterval;
 
   bool _waitingForConnect = false;
+  bool _enableLogs = true;
 
   String? _sessionId;
   // ignore: unused_field
@@ -146,10 +147,13 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   ReconnectListenersHolder _reconnectListenersHolder =
       ReconnectListenersHolder();
 
-  DDP(this._url, {this.reconnectInterval = const Duration(seconds: 30)}) {
+  DDP(this._url,
+      {this.reconnectInterval = const Duration(seconds: 30),
+      bool enableLogs = true}) {
     this._url = _url;
     this._serverId = '';
     this._waitingForConnect = false;
+    this._enableLogs = enableLogs;
     this._idManager = IdManager();
     this._collections = {};
     this._calls = {};
@@ -207,7 +211,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._socket = ws;
 
     this._reader = Reader(ws.stream);
-    this._writer = Writer(ws.sink);
+    this._writer = Writer(ws.sink, enableLogs: this._enableLogs);
     this._inboxManager();
     this._send(msg);
   }
@@ -361,13 +365,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   void _inboxManager() {
     this._reader!.listen((event) {
       final message = json.decode(event) as Map<String, dynamic>;
-      Log.info(event, '<-');
+      if (this._enableLogs) Log.info(event, '<-');
       if (message.containsKey('msg')) {
         final mtype = message['msg'];
         if (this._messageHandlers!.containsKey(mtype)) {
           this._messageHandlers![mtype]!(message);
         } else {
-          Log.warn('Server sent unexpected message $message');
+          if (this._enableLogs)
+            Log.warn('Server sent unexpected message $message');
         }
       } else if (message.containsKey('server_id')) {
         final serverId = message['server_id'];
@@ -377,7 +382,8 @@ class DDP implements ConnectionNotifier, StatusNotifier {
           print('Server cluster node $serverId');
         }
       } else {
-        Log.warn('Server sent message without `msg` field $message');
+        if (this._enableLogs)
+          Log.warn('Server sent message without `msg` field $message');
       }
     }, onDone: this._onDone, onError: this._onError, cancelOnError: true);
   }

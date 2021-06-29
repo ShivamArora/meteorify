@@ -96,10 +96,10 @@ class Meteor {
     _statusListener = (status) {
       if (status == ConnectStatus.connected) {
         isConnected = true;
+        _notifyConnected();
         if (autoLoginOnReconnect && !Utils.isNullorEmpty(_token)) {
           try {
             loginWithToken(_token);
-            _notifyConnected();
           } on MeteorError catch (err) {
             Log.error(err.reason!);
           }

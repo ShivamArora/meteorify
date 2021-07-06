@@ -32,7 +32,7 @@ Null safety:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^3.0.0
+  enhanced_meteorify: ^3.0.3
 ```
 
 
@@ -53,7 +53,7 @@ import 'package:meteorify/meteorify.dart';
 
 main() async{
   try{
-      var status = await Meteor.connect('ws://example.meteor.com/websocket');
+      var status = await Meteor.connect('ws://example.meteor.com/websocket', );
       // Do something after connection is successful
   }catch(error){
       print(error);
@@ -77,7 +77,7 @@ Meteor.disconnect();
 #### Listen for connection updates
 
 ```dart
-Meteor.connectionListener = (ConnectionStatus connectionStatus){
+Meteor.connectionListener = (ConnectionStatus connectionStatus) {
   print(connectionStatus);
 }
 ```

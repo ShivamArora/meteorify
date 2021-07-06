@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'collection.dart';
@@ -118,11 +117,12 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   Duration reconnectInterval;
 
   bool _waitingForConnect = false;
+  bool _isTryToReconnect = true;
   bool _enableLogs = true;
 
-  String? _sessionId;
+  String _sessionId = '';
   // ignore: unused_field
-  String? _serverId;
+  String _serverId = '';
   String _url;
   String _version = '1';
   List<String> _support = ["1", "pre2", "pre1"];
@@ -187,7 +187,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._statusListeners!.remove(listener);
   }
 
-  String get session => _sessionId!;
+  String get session => _sessionId;
 
   String get version => _version;
 
@@ -201,7 +201,11 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   }
 
   void _send(String msg) {
-    this._writer!.add(msg);
+    if (this._connectStatus == ConnectStatus.disconnected) {
+      Log.error('Disconnected from the server');
+    } else {
+      this._writer!.add(msg);
+    }
   }
 
   void _start(WebSocketChannel ws, String msg) {
@@ -224,6 +228,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       }
 
       this._status(ConnectStatus.dialing);
+      _isTryToReconnect = true;
       final ws = WebSocketChannel.connect(Uri.parse(this._url));
       this._start(
           ws, Message.connect(this._sessionId, this._version, this._support));
@@ -249,16 +254,18 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
       this.close();
       this._status(ConnectStatus.dialing);
+      _isTryToReconnect = true;
       final connection = WebSocketChannel.connect(Uri.parse(this._url));
       this._start(connection,
-          Message.reconnect(this._sessionId!, this._version, this._support));
-      this._calls!.values.forEach(
+          Message.reconnect(this._sessionId, this._version, this._support));
+      this._calls?.values.forEach(
           (call) => Message.method(call.id!, call.serviceMethod, call.args));
-      this._subs!.values.forEach(
+      this._subs?.values.forEach(
           (call) => Message.sub(call.id!, call.serviceMethod!, call.args));
       _waitingForConnect = false;
       _reconnectListenersHolder.onConnected();
     } catch (err) {
+      print(err);
       Log.error('DDP::ERROR::ON RECONNECT: $err');
       this.close();
       this._reconnectLater();
@@ -267,7 +274,8 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   void close() {
     if (this._socket != null) {
-      this._socket = null;
+      this._socket!.sink.close();
+      _isTryToReconnect = false;
     }
 
     this._collections!.values.forEach((collection) => collection.reset());
@@ -360,10 +368,13 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       }
     };
     this._messageHandlers!['updated'] = (msg) {};
+    this._messageHandlers!['error'] = (msg) {
+      this._notifyError(msg);
+    };
   }
 
   void _inboxManager() {
-    this._reader!.listen((event) {
+    this._reader?.listen((event) {
       final message = json.decode(event) as Map<String, dynamic>;
       if (this._enableLogs) Log.info(event, '<-');
       if (message.containsKey('msg')) {
@@ -382,19 +393,32 @@ class DDP implements ConnectionNotifier, StatusNotifier {
           print('Server cluster node $serverId');
         }
       } else {
-        if (this._enableLogs)
-          Log.warn('Server sent message without `msg` field $message');
+        if (message.containsKey('testMessageOnConnect')) {
+          Log.info(
+              'Server send message to test connection. Message: $message', '!');
+        } else {
+          if (this._enableLogs)
+            Log.warn('Server sent message without `msg` field $message');
+        }
       }
     }, onDone: this._onDone, onError: this._onError, cancelOnError: true);
   }
 
+  void _notifyError(Map<String, dynamic> error) {
+    Log.error('Server returned an error: $error');
+  }
+
   void _onDone() {
-    this._status(ConnectStatus.disconnected);
-    Log.error('Disconnect due to websocket onDone');
-    Log.error(
-        'Disconnected code: ${this._socket?.closeCode}, reason: ${this._socket?.closeReason}');
-    Log.error('Schedule reconnect due to websocket onDone');
-    this._reconnectLater();
+    if (_isTryToReconnect) {
+      this._status(ConnectStatus.disconnected);
+      Log.error('Disconnect due to websocket onDone');
+      Log.error(
+          'Disconnected code: ${this._socket?.closeCode}, reason: ${this._socket?.closeReason}');
+      Log.error('Schedule reconnect due to websocket onDone');
+      this._reconnectLater();
+    } else {
+      this.close();
+    }
   }
 
   void _onError(dynamic error) {

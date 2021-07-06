@@ -20,6 +20,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    Meteor.connectionListener = (value) {
+      print(value);
+    };
     super.initState();
   }
 
@@ -108,6 +111,26 @@ class _HomePageState extends State<HomePage> {
                       child: Text('Logout')),
                   SizedBox(height: 10),
                   Text('UserId: ${Meteor.currentUserId}'),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          Meteor.disconnect();
+                        } on MeteorError catch (error) {
+                          print(error);
+                        }
+                      },
+                      child: Text('Disconnected')),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          Meteor.reconnect();
+                        } on MeteorError catch (error) {
+                          print(error);
+                        }
+                      },
+                      child: Text('Reconnect')),
                 ],
               ),
             ),

@@ -1,3 +1,7 @@
+## 3.0.3
+ - Add suport to Meteor 2.3 🥳
+ - Will no longer try to reconnect after `Meteor.disconnect()` [#4](https://github.com/wendellrocha/enhanced_meteorify/issues/4)
+
 ## 3.0.2
  - Added `enableLogs` argument (default: true) to Meteor.connect to enable or disable DDP logs (does not affect error logs) [#2](https://github.com/wendellrocha/enhanced_meteorify/issues/2)
   ```dart

@@ -80,6 +80,7 @@ class Meteor {
   /// Connect to the Meteor framework using the [url].
   /// Takes an optional parameter [autoLoginOnReconnect] which, if true would login the current user again with the [_sessionToken] when the server reconnects.
   /// Takes another optional parameter [heartbeatInterval] which indicates the duration after which the client checks if the connection is still alive.
+  /// Takes another optional parameter [enableLogs] to enable or disable logs from DDP.
   ///
   /// Returns a [ConnectionStatus] wrapped in [Future].
   static Future<ConnectionStatus> connect(

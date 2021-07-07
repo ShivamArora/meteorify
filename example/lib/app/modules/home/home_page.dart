@@ -115,6 +115,7 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton(
                       onPressed: () async {
                         try {
+                          print(DateTime.now().toLocal().toIso8601String());
                           Meteor.disconnect();
                         } on MeteorError catch (error) {
                           print(error);
@@ -125,6 +126,7 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton(
                       onPressed: () async {
                         try {
+                          print(DateTime.now().toLocal().toIso8601String());
                           Meteor.reconnect();
                         } on MeteorError catch (error) {
                           print(error);

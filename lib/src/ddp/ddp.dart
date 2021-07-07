@@ -265,10 +265,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       _waitingForConnect = false;
       _reconnectListenersHolder.onConnected();
     } catch (err) {
-      print(err);
-      Log.error('DDP::ERROR::ON RECONNECT: $err');
-      this.close();
-      this._reconnectLater();
+      if (err.toString().contains('No route to host')) {
+        Log.error('DDP::ERROR::ON RECONNECT: $err');
+        this.close();
+      } else {
+        Log.error('DDP::ERROR::ON RECONNECT: $err');
+        this.close();
+        this._reconnectLater();
+      }
     }
   }
 
@@ -422,11 +426,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   }
 
   void _onError(dynamic error) {
-    this._status(ConnectStatus.disconnected);
-    Log.error('Disconnect due to websocket onError');
-    Log.error('Error: $error');
-    Log.error('Schedule reconnect due to websocket onError');
-    this._reconnectLater();
+    if (error.toString().contains('No route to host')) {
+      this._status(ConnectStatus.disconnected);
+      Log.error('Disconnect due to websocket onError');
+      Log.error('Error: $error');
+    } else {
+      Log.error('Schedule reconnect due to websocket onError');
+      this._reconnectLater();
+    }
   }
 
   Collection? collectionByName(String name) {

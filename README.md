@@ -1,3 +1,5 @@
+> I'm running out of time to work on the package. Pull requests are welcome!
+
 # Enhanced Meteorify
 [![Pub](https://img.shields.io/pub/v/enhanced_meteorify?include_prereleases)](https://pub.dev/packages/enhanced_meteorify)
 

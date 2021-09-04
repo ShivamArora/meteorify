@@ -3,10 +3,10 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
-import 'subscribed_collection.dart';
 import '../ddp/ddp.dart';
 import '../utils/log.dart';
 import '../utils/utils.dart';
+import 'subscribed_collection.dart';
 
 /// An enum for describing the [ConnectionStatus].
 enum ConnectionStatus { CONNECTED, DISCONNECTED }
@@ -308,6 +308,110 @@ class Meteor {
     return null;
   }
 
+  /// Creates a new user using [username], [email], [password] and a [profile] map.
+  ///
+  /// Returns the `userId` of the created user.
+  static Future<String?> createUser(String username, String email,
+      String password, Map<String, dynamic> profile) async {
+    if (isConnected) {
+      Map<String, dynamic> data = {
+        'username': username,
+        'email': email,
+        'password': {
+          'digest': sha256.convert(utf8.encode(password)).toString(),
+          'algorithm': 'sha-256'
+        },
+        'profile': profile
+      };
+      var result = await _client!.call('createUser', [data]);
+      if (result.error == null) {
+        return await result.reply;
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    }
+    return null;
+  }
+
+  /// Change the user account password provided the user is already logged in.
+  ///
+  /// Returns `true` if the password was changed.
+  static Future<bool> changePassword(
+      String oldPassword, String newPassword) async {
+    if (isConnected) {
+      var result = await _client!.call('changePassword', [
+        {
+          'digest': sha256.convert(utf8.encode(oldPassword)).toString(),
+          'algorithm': 'sha-256'
+        },
+        {
+          'digest': sha256.convert(utf8.encode(newPassword)).toString(),
+          'algorithm': 'sha-256'
+        },
+      ]);
+      if (result.error == null) {
+        return await result.reply['passwordChanged'];
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    }
+    return false;
+  }
+
+  /// Sends a `forgotPassword` email to the user with a link to reset the password.
+  ///
+  /// Returns `true` if the email was sent.
+  static Future<bool> forgotPassword(String email) async {
+    if (isConnected) {
+      var result = await Meteor.call('forgotPassword', [
+        {'email': email}
+      ]);
+      if (result.error == null) {
+        return true;
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    }
+    return false;
+  }
+
+  /// Resets the user password by taking the [passwordResetToken] and the [newPassword].
+  ///
+  /// Returns `userId`
+  static Future<String?> resetPassword(
+      String resetToken, String newPassword) async {
+    if (isConnected) {
+      var result = await _client!.call('resetPassword', [
+        resetToken,
+        {
+          'digest': sha256.convert(utf8.encode(newPassword)).toString(),
+          'algorithm': 'sha-256'
+        }
+      ]);
+      if (result.error == null) {
+        return await result.reply['userId'];
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    }
+    return null;
+  }
+
+  /// Send an email with a link the user can use verify their email address.
+  ///
+  /// Returns `true` if the email was sent.
+  static Future<bool> verifyEmail(String emailToken) async {
+    if (isConnected) {
+      var result = await _client!.call('verifyEmail', [emailToken]);
+      if (result.error == null) {
+        return true;
+      } else {
+        throw MeteorError.parse(result.reply);
+      }
+    }
+    return false;
+  }
+
   /// Used internally to notify the future about success/failure of login process.
   static Future<String> _notifyLoginResult(result) async {
     String userId = result.reply['id'];
@@ -344,8 +448,8 @@ class Meteor {
   static Future<String?> subscribe(String subscriptionName,
       {List<dynamic> args = const []}) async {
     var result = await _client!.sub(subscriptionName, args);
-    if (result.error != null && result.error.toString().contains('nosub')) {
-      throw MeteorError.parse(result.reply);
+    if (result.error != null && result.reply.toString().contains('nosub')) {
+      throw result.error! as MeteorError;
     } else {
       return result.id;
     }

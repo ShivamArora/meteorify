@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../enhanced_meteorify.dart';
 import 'collection.dart';
 import 'log.dart';
 import 'message.dart';
@@ -322,13 +324,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._messageHandlers!['nosub'] = (msg) {
       if (msg.containsKey('id')) {
         final id = msg['id'] as String;
-        final runningSub = this._subs!['id'];
+        final runningSub = this._subs![id];
         if (runningSub != null) {
           Log.error('Subscription returned a nosub error $msg');
-          runningSub.error =
-              ArgumentError('Subscription returned a nosub error');
+          runningSub.reply = msg;
+          runningSub.error = MeteorError.parse(msg['error']);
           runningSub.done();
           this._subs!.remove(id);
+          // throw MeteorError.parse(msg);
         }
         final runningUnSub = this._unsubs![id];
         if (runningUnSub != null) {

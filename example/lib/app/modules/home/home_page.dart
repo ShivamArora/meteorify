@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
   String methodWithoutArguments = '';
   String methodWithArguments = '';
   String methodError = '';
+  String subscriptionError = '';
 
   @override
   void initState() {
@@ -87,7 +88,48 @@ class _HomePageState extends State<HomePage> {
                   ElevatedButton(
                       onPressed: () async {
                         try {
-                          await Meteor.loginWithPassword('wendell', '3297862');
+                          bool result =
+                              await Meteor.changePassword('1234', '1234');
+                          print(result);
+                        } on MeteorError catch (error) {
+                          setState(() {
+                            methodError = error.reason;
+                          });
+                        }
+                      },
+                      child: Text('Change password')),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          bool result =
+                              await Meteor.changePassword('1234', '1234');
+                          print(result);
+                        } on MeteorError catch (error) {
+                          setState(() {
+                            methodError = error.reason;
+                          });
+                        }
+                      },
+                      child: Text('Change password')),
+                  SizedBox(height: 10),
+                  ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await Meteor.subscribe('teste', args: []);
+                        } on MeteorError catch (error) {
+                          setState(() {
+                            subscriptionError = error.reason;
+                          });
+                        }
+                      },
+                      child: Text('Subscribe error')),
+                  SizedBox(height: 10),
+                  Text('$subscriptionError'),
+                  ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          await Meteor.loginWithPassword('wendell', '1234');
                           _bloc.fetch();
                         } on MeteorError catch (error) {
                           print(error);

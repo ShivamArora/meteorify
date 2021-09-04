@@ -1,3 +1,21 @@
+## 3.1.0
+ - Bug fixes
+ - Rename `Accounts` methods to `Meteor` methods. 
+    ```dart
+    var userId = await Meteor.createUser(username, email, password, profileOptions);
+    bool result = await Meteor.changePassword(oldPassword, newPassword);
+    bool result = await Meteor.forgotPassword(email);
+    bool result = await Meteor.resetPassword(resetToken, newPassword);
+    ```
+ - Throwing subscription errors. Catch them all!
+    ```dart
+    try {
+        var result = await Meteor.subscribe('test');
+    } on MeteorError catch (e) {
+        print(e.reason);
+    }
+    ```
+
 ## 3.0.3
  - Add suport to Meteor 2.3 🥳
  - Will no longer try to reconnect after `Meteor.disconnect()` [#4](https://github.com/wendellrocha/enhanced_meteorify/issues/4)

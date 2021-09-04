@@ -32,7 +32,7 @@ Null safety:
 
 ```yaml
 dependencies:
-  enhanced_meteorify: ^3.0.4
+  enhanced_meteorify: ^3.1.0
 ```
 
 
@@ -97,23 +97,17 @@ Meteor.currentUserIdListener = (String userId) {
 var subscriptionId = await Meteor.subscribe(subscriptionName);
 ```
 
-
-
 #### Subscriptions with Parameters
 
 ```dart
 var subscriptionId = await Meteor.subscribe(subscriptionName,args:[arg1,arg2]);
 ```
 
-
-
 #### Unsubscribe from Data
 
 ```dart
 await Meteor.unsubscribe(subscriptionId);
 ```
-
-
 
 #### Get subscribed data/collection
 
@@ -124,17 +118,13 @@ SubscribedCollection collection = await Meteor.collection(collectionName);
 //collection.findOne(id);
 ```
 
-
-
 ### Authentication
 
 #### Creating New Account
 
 ```dart
-var userId = await Accounts.createUser(username, email, password, profileOptions);
+var userId = await Meteor.createUser(username, email, password, profileOptions);
 ```
-
-
 
 #### Login
 
@@ -277,7 +267,7 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
       apple_sign_in: ^0.1.0
    ```
 
-   ```dart
+  ```dart
    import 'package:apple_sign_in/apple_sign_in.dart';
 
    Future<void> _loginWithApple(context) async {
@@ -308,24 +298,24 @@ var userId = await Accounts.createUser(username, email, password, profileOptions
       print(error);
     }
   }
-   ```
+```
 
 6. Change Password (need to be logged in)
 
    ```dart
-   String result = await Accounts.changePassword(oldPassword, newPassword);
+   bool result = await Meteor.changePassword(oldPassword, newPassword);
    ```
 
 7. Forgot Password
 
    ```dart
-   String result = await Accounts.forgotPassword(email);
+   bool result = await Meteor.forgotPassword(email);
    ```
 
 8. Reset Password
 
    ```dart
-   String result = await Accounts.resetPassword(resetToken, newPassword);
+   bool result = await Meteor.resetPassword(resetToken, newPassword);
    ```
 
 9.  Logout

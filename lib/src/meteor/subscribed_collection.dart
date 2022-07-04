@@ -1,4 +1,3 @@
-
 import 'package:enhanced_meteorify/src/ddp/collection.dart';
 
 /// Provides useful methods to read data from a collection on the frontend.
@@ -34,21 +33,15 @@ class SubscribedCollection {
 
   /// Returns specific objects from a subscribed collection using a set of [selectors].
   Map<String, Map<String, dynamic>> find(Map<String, dynamic> selectors) {
-    var filteredCollection =
-        <String, Map<String, dynamic>>{};
-    print('Finding docs');
-    print(selectors.keys);
+    var filteredCollection = <String, Map<String, dynamic>>{};
     _collection.findAll().forEach((key, document) {
       var shouldAdd = true;
       selectors.forEach((selector, value) {
-        print('Key: $selector');
-        print('Value: ${document[selector]}');
         if (document[selector] != value) {
           shouldAdd = false;
         }
       });
       if (shouldAdd) {
-        print('Add');
         filteredCollection[key] = document;
       } else {
         print("Don't add");

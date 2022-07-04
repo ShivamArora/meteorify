@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 import '../ddp/ddp.dart';
+import '../ddp/enums/connect_status.dart';
+import '../ddp/typedefs/typedefs.dart';
 import '../utils/log.dart';
 import '../utils/utils.dart';
 import 'subscribed_collection.dart';

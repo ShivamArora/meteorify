@@ -1,3 +1,7 @@
+## 3.2.0
+- Bug fixes
+- Refactor
+
 ## 3.1.0
  - Bug fixes
  - Rename `Accounts` methods to `Meteor` methods. 

@@ -4,116 +4,18 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../../enhanced_meteorify.dart';
+import 'classes/call.dart';
+import 'classes/connection_notifier.dart';
+import 'classes/id_manager.dart';
+import 'classes/reconnect_listener.dart';
+import 'classes/reconnect_listener_holder.dart';
+import 'classes/status_notifier.dart';
 import 'collection.dart';
+import 'enums/connect_status.dart';
 import 'log.dart';
 import 'message.dart';
 import 'stream.dart';
-
-enum ConnectStatus { disconnected, dialing, connecting, connected }
-
-typedef void _MessageHandler(Map<String, dynamic> message);
-typedef void ConnectionListener();
-typedef void StatusListener(ConnectStatus status);
-
-abstract class ConnectionNotifier {
-  void addConnectionListener(ConnectionListener listener);
-}
-
-abstract class StatusNotifier {
-  void addStatusListener(StatusListener listener);
-
-  void removeStatusListener(StatusListener listener);
-}
-
-abstract class ReconnectListener {
-  void onReconnectBegin();
-
-  void onReconnectDone();
-
-  void onConnected();
-}
-
-class ReconnectListenersHolder implements ReconnectListener {
-  List<ReconnectListener> _listeners = [];
-
-  void addReconnectListener(ReconnectListener? listener) {
-    if (listener == null) {
-      return;
-    }
-
-    removeReconnectListener(listener);
-    _listeners.add(listener);
-  }
-
-  void removeReconnectListener(ReconnectListener? listener) {
-    if (listener == null) {
-      return;
-    }
-    _listeners.remove(listener);
-  }
-
-  void onReconnectBegin() {
-    _listeners.forEach((listener) {
-      try {
-        listener.onReconnectBegin();
-      } catch (exception) {
-        print(exception);
-      }
-    });
-  }
-
-  void onReconnectDone() {
-    _listeners.forEach((listener) {
-      try {
-        listener.onReconnectDone();
-      } catch (exception) {
-        print(exception);
-      }
-    });
-  }
-
-  void onConnected() {
-    _listeners.forEach((listener) {
-      try {
-        listener.onConnected();
-      } catch (exception) {
-        print(exception);
-      }
-    });
-  }
-}
-
-class IdManager {
-  int _next = 0;
-
-  String next() {
-    final next = _next;
-    _next++;
-    return next.toRadixString(16);
-  }
-}
-
-typedef void OnCallDone(Call call);
-
-class Call {
-  String? id;
-  String? serviceMethod;
-  dynamic args;
-  dynamic reply;
-  Error? error;
-  DDP? owner;
-  List<OnCallDone> _handlers = [];
-
-  void onceDone(OnCallDone fn) {
-    this._handlers.add(fn);
-  }
-
-  void done() {
-    owner!._calls!.remove(this.id);
-    _handlers.forEach((handler) => handler(this));
-    _handlers.clear();
-  }
-}
+import 'typedefs/typedefs.dart';
 
 class DDP implements ConnectionNotifier, StatusNotifier {
   Duration reconnectInterval;
@@ -137,11 +39,12 @@ class DDP implements ConnectionNotifier, StatusNotifier {
 
   Timer? _reconnectTimer;
 
-  Map<String, Call>? _calls;
+  Map<String, Call>? calls;
   Map<String, Call>? _subs;
   Map<String, Call>? _unsubs;
   Map<String, Collection>? _collections;
-  Map<String, _MessageHandler>? _messageHandlers;
+  Map<String, MessageHandler>? _messageHandlers;
+  List<dynamic>? _subscriptions;
 
   ConnectStatus? _connectStatus;
   List<StatusListener>? _statusListeners;
@@ -149,21 +52,24 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   ReconnectListenersHolder _reconnectListenersHolder =
       ReconnectListenersHolder();
 
-  DDP(this._url,
-      {this.reconnectInterval = const Duration(seconds: 30),
-      bool enableLogs = true}) {
+  DDP(
+    this._url, {
+    this.reconnectInterval = const Duration(seconds: 30),
+    bool enableLogs = true,
+  }) {
     this._url = _url;
     this._serverId = '';
     this._waitingForConnect = false;
     this._enableLogs = enableLogs;
     this._idManager = IdManager();
     this._collections = {};
-    this._calls = {};
+    this.calls = {};
     this._subs = {};
     this._unsubs = {};
     this._connectStatus = ConnectStatus.disconnected;
     this._statusListeners = [];
     this._connectionListener = [];
+    this._subscriptions = [];
   }
 
   void addReconnectListener(ReconnectListener listener) {
@@ -203,11 +109,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   }
 
   void _send(String msg) {
-    if (this._connectStatus == ConnectStatus.disconnected) {
-      Log.error('Disconnected from the server');
-    } else {
-      this._writer!.add(msg);
-    }
+    this._writer!.add(msg);
   }
 
   void _start(WebSocketChannel ws, String msg) {
@@ -232,9 +134,16 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       this._status(ConnectStatus.dialing);
       _isTryToReconnect = true;
       final ws = WebSocketChannel.connect(Uri.parse(this._url));
+
       this._start(
-          ws, Message.connect(this._sessionId, this._version, this._support));
-      _waitingForConnect = false;
+        ws,
+        Message.connect(
+          this._sessionId,
+          this._version,
+          this._support,
+        ),
+      );
+
       _reconnectListenersHolder.onConnected();
     } catch (err) {
       Log.error('DDP::ERROR::ON CONNECT: $err');
@@ -249,22 +158,41 @@ class DDP implements ConnectionNotifier, StatusNotifier {
         this._reconnectTimer = null;
       }
 
-      if (_waitingForConnect = false) {
-        _waitingForConnect = true;
-        _reconnectListenersHolder.onReconnectBegin();
-      }
+      _reconnectListenersHolder.onReconnectBegin();
 
       this.close();
       this._status(ConnectStatus.dialing);
       _isTryToReconnect = true;
       final connection = WebSocketChannel.connect(Uri.parse(this._url));
-      this._start(connection,
-          Message.reconnect(this._sessionId, this._version, this._support));
-      this._calls?.values.forEach(
-          (call) => Message.method(call.id!, call.serviceMethod, call.args));
-      this._subs?.values.forEach(
-          (call) => Message.sub(call.id!, call.serviceMethod!, call.args));
-      _waitingForConnect = false;
+      this._start(
+        connection,
+        Message.connect(
+          this._sessionId,
+          this._version,
+          this._support,
+        ),
+      );
+
+      this.calls!.values.forEach((call) {
+        this._send(
+          Message.method(
+            call.id!,
+            call.serviceMethod!,
+            call.args,
+          ),
+        );
+      });
+
+      this._subs!.values.forEach((call) {
+        this._send(
+          Message.sub(
+            call.id!,
+            call.serviceMethod!,
+            call.args,
+          ),
+        );
+      });
+
       _reconnectListenersHolder.onConnected();
     } catch (err) {
       if (err.toString().contains('No route to host')) {
@@ -279,7 +207,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   }
 
   void close() {
-    if (this._socket != null) {
+    if (this._socket != null && !_isTryToReconnect) {
       this._socket!.sink.close();
       _isTryToReconnect = false;
     }
@@ -291,7 +219,9 @@ class DDP implements ConnectionNotifier, StatusNotifier {
   void _reconnectLater() {
     this.close();
     if (this._reconnectTimer == null) {
-      this._reconnectTimer = Timer(this.reconnectInterval, this.reconnect);
+      this._reconnectTimer = Timer(this.reconnectInterval, () {
+        this.reconnect();
+      });
     }
   }
 
@@ -311,6 +241,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._messageHandlers = {};
     this._messageHandlers!['connected'] = (msg) {
       this._status(ConnectStatus.connected);
+      this._collections!.values.forEach((c) => c.init());
       this._version = '1';
       this._sessionId = msg['session'] as String;
       this._connectionListener!.forEach((l) => l());
@@ -325,14 +256,17 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       if (msg.containsKey('id')) {
         final id = msg['id'] as String;
         final runningSub = this._subs![id];
+
         if (runningSub != null) {
-          Log.error('Subscription returned a nosub error $msg');
-          runningSub.reply = msg;
-          runningSub.error = MeteorError.parse(msg['error']);
-          runningSub.done();
-          this._subs!.remove(id);
-          // throw MeteorError.parse(msg);
+          if (msg.containsKey('error')) {
+            Log.error('Subscription returned a nosub error $msg');
+            runningSub.reply = msg;
+            runningSub.error = MeteorError.parse(msg['error']);
+            runningSub.done();
+            this._subs!.remove(id);
+          }
         }
+
         final runningUnSub = this._unsubs![id];
         if (runningUnSub != null) {
           runningUnSub.done();
@@ -342,8 +276,8 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     };
     this._messageHandlers!['ready'] = (msg) {
       if (msg.containsKey('subs')) {
-        final subs = msg['subs'] as List<dynamic>;
-        subs.forEach((sub) {
+        this._subscriptions = msg['subs'] as List<dynamic>;
+        _subscriptions!.forEach((sub) {
           if (this._subs!.containsKey(sub)) {
             this._subs![sub]!.done();
             this._subs!.remove(sub);
@@ -360,8 +294,8 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     this._messageHandlers!['result'] = (msg) {
       if (msg.containsKey('id')) {
         final id = msg['id'];
-        final call = this._calls![id];
-        this._calls!.remove(id);
+        final call = this.calls![id];
+        this.calls!.remove(id);
         if (msg.containsKey('error')) {
           if (msg['error'] != null) {
             final e = msg['error'];
@@ -386,6 +320,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       if (this._enableLogs) Log.info(event, '<-');
       if (message.containsKey('msg')) {
         final mtype = message['msg'];
+
         if (this._messageHandlers!.containsKey(mtype)) {
           this._messageHandlers![mtype]!(message);
         } else {
@@ -402,7 +337,9 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       } else {
         if (message.containsKey('testMessageOnConnect')) {
           Log.info(
-              'Server send message to test connection. Message: $message', '!');
+            'Server send message to test connection. Message: $message',
+            '!',
+          );
         } else {
           if (this._enableLogs)
             Log.warn('Server sent message without `msg` field $message');
@@ -420,7 +357,9 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       this._status(ConnectStatus.disconnected);
       Log.error('Disconnect due to websocket onDone');
       Log.error(
-          'Disconnected code: ${this._socket?.closeCode}, reason: ${this._socket?.closeReason}');
+        'Disconnected code: ${this._socket?.closeCode},'
+        ' reason: ${this._socket?.closeReason}',
+      );
       Log.error('Schedule reconnect due to websocket onDone');
       this._reconnectLater();
     } else {
@@ -465,7 +404,7 @@ class DDP implements ConnectionNotifier, StatusNotifier {
       ..owner = this;
 
     _call.onceDone(done);
-    this._calls![_call.id!] = _call;
+    this.calls![_call.id!] = _call;
     this._send(Message.method(_call.id!, serviceMethod, args));
     return _call;
   }
@@ -488,12 +427,20 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     return completer.future;
   }
 
-  Call _subscribe(String subName, OnCallDone done, List<dynamic> args) {
+  Call _subscribe(String subName, OnCallDone? done, List<dynamic> args) {
+    final latestSub = this._subs!.keys.singleWhere(
+          (element) => element.contains(subName),
+          orElse: () => '',
+        );
     final _call = Call()
-      ..id = '$subName-${_idManager!.next()}'
+      ..id = latestSub.isNotEmpty ? latestSub : '$subName-${_idManager!.next()}'
       ..serviceMethod = subName
       ..args = args
       ..owner = this;
+
+    if (done == null) {
+      done = (call) {};
+    }
 
     _call.onceDone(done);
     this._subs![_call.id!] = _call;
@@ -501,10 +448,14 @@ class DDP implements ConnectionNotifier, StatusNotifier {
     return _call;
   }
 
-  Call _unSubscribe(String id, OnCallDone done) {
+  Call _unSubscribe(String id, OnCallDone? done) {
     final _call = Call()
       ..id = id
       ..owner = this;
+
+    if (done == null) {
+      done = (call) {};
+    }
 
     _call.onceDone(done);
     this._unsubs![_call.id!] = _call;

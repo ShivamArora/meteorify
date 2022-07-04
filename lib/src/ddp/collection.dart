@@ -34,6 +34,8 @@ abstract class Collection {
 
   void reset();
 
+  void init();
+
   void addUpdateListener(UpdateListener listener);
 
   void removeUpdateListeners();
@@ -110,6 +112,9 @@ class KeyCache implements Collection {
   }
 
   @override
+  void init() {}
+
+  @override
   Map<String, Map<String, dynamic>> findAll() => this._items;
 
   @override
@@ -140,6 +145,9 @@ class _MockCache implements Collection {
 
   @override
   void removed(Map<String, dynamic> doc) {}
+
+  @override
+  void init() {}
 
   @override
   void reset() {}
